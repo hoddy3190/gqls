@@ -316,3 +316,170 @@ export const parseMediaType = (str: string): MediaType | undefined => {
 
   return result;
 };
+
+//
+// https://httpwg.org/specs/rfc9110.html#rule.parameter
+
+//    ABNF of Accept header
+//  -----------------------------------------------------------------------
+//    Accept      = #( media-range [ weight ] )
+//
+//    media-range = ( "*/*"
+//                    / ( type "/" "*" )
+//                    / ( type "/" subtype )
+//                  ) parameters
+//  -----------------------------------------------------------------------
+export const parseMediaRange = (str: string): MediaType[] | undefined => {
+  // [rfc9110]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.5
+  // A field value does not include leading or trailing whitespace.
+  // When a specific version of HTTP allows such whitespace to appear in a message,
+  // a field parsing implementation MUST exclude such whitespace prior to evaluating the field value.
+  str = removeSurroundingWhitespace(str);
+
+  const len = str.length;
+
+  let position = 0;
+
+  const mediaRange: MediaType[] = [];
+
+  while (position < len) {
+    let type = "";
+    while (position < len && isTchar(str[position]!)) {
+      type += str[position];
+      position++;
+    }
+
+    if (type === "" || str[position] !== "/" || position >= len) {
+      return undefined;
+    }
+
+    // Advance position by 1. (This skips past U+002F (/).)
+    position++;
+
+    let subtype = "";
+    while (position < len && isTchar(str[position]!)) {
+      subtype += str[position];
+      position++;
+    }
+
+    if (type === "*" && subtype != "*") {
+      return undefined;
+    }
+
+    if (
+      subtype === "" ||
+      (position < len &&
+        str[position] !== ";" &&
+        !isOWSChar(str[position]!) &&
+        str[position] !== ",")
+    ) {
+      return undefined;
+    }
+
+    type = type.toLocaleLowerCase();
+    subtype = subtype.toLocaleLowerCase();
+    const mediaType = type + "/" + subtype;
+
+    const result: MediaType = {
+      type,
+      subtype,
+      mediaType,
+      parameters: new Map<string, string>(),
+    };
+
+    while (position < len) {
+      // skip OWS before ";"
+      while (position < len && isOWSChar(str[position]!)) {
+        position++;
+      }
+
+      // The end of input must not be OWS.
+      // This condition is not true because of "removeSurroundingWhitespace".
+      if (position >= len) {
+        return undefined;
+      }
+
+      if (str[position] === ",") {
+        position++;
+        while (position < len && isOWSChar(str[position]!)) {
+          position++;
+        }
+        if (position >= len) {
+          return undefined;
+        }
+        break;
+      }
+
+      if (str[position] !== ";") {
+        return undefined;
+      }
+
+      // Advance position by 1. (This skips past U+003B (;).)
+      position++;
+
+      // The end of input must not be ";".
+      if (position >= len) {
+        return undefined;
+      }
+
+      // skip OWS after ";"
+      while (position < len && isOWSChar(str[position]!)) {
+        position++;
+      }
+
+      let parameterName = "";
+      while (position < len && isTchar(str[position]!)) {
+        parameterName += str[position];
+        position++;
+      }
+
+      if (parameterName === "" || str[position] !== "=" || position >= len) {
+        return undefined;
+      }
+
+      // Set parameterName to parameterName, in ASCII lowercase.
+      // parameterName is insensitive to ASCII case.
+      parameterName = parameterName.toLocaleLowerCase();
+
+      // [strict]: 11-7. Advance =.
+      position++;
+
+      // The end of input must not be "=".
+      if (position >= len) {
+        return undefined;
+      }
+
+      let parameterValue = "";
+      // cases of quoted-string (if) and token (else)
+      if (str[position] === DQUOTE) {
+        const innerStringAndPosition = getStringInnerQuotations(str, position);
+        if (innerStringAndPosition === undefined) {
+          return undefined;
+        }
+        [parameterValue, position] = innerStringAndPosition;
+      } else {
+        while (position < len && isTchar(str[position]!)) {
+          parameterValue += str[position];
+          position++;
+        }
+        // token cannot be empty (quoted-string can be empty)
+        if (parameterValue === "") {
+          return undefined;
+        }
+      }
+
+      if (position < len && str[position] !== ";" && !isOWSChar(str[position]!)) {
+        return undefined;
+      }
+
+      // Priority logic of the same parameterName
+      if (result.parameters.has(parameterName)) continue;
+
+      result.parameters.set(parameterName, parameterValue);
+    }
+
+    mediaRange.push(result);
+  }
+
+  return mediaRange;
+};
