@@ -3,7 +3,7 @@ import { assert } from "node:console";
 const HTAB = String.fromCharCode(0x09);
 const SP = String.fromCharCode(0x20);
 const DQUOTE = String.fromCharCode(0x22);
-const REVERSE_DOLIDUS = String.fromCharCode(0x5c);
+const REVERSE_SOLIDUS = String.fromCharCode(0x5c);
 
 const charSet = (fromCode: number, toCode: number): Set<string> => {
   return Array.from({ length: toCode - fromCode + 1 }, (_, i) =>
@@ -47,7 +47,7 @@ const isTchar = (char: string): boolean => tcharSet.has(char);
  *
  * So, character set used in qdtext is:
  *
- * qdTextCharSet = ( HTAB / SP / VCHAR / obs-text ) of quoted-pair - DQUOTE - REVERSE_DOLIDUS
+ * qdTextCharSet = ( HTAB / SP / VCHAR / obs-text ) of quoted-pair - DQUOTE - REVERSE_SOLIDUS
  *
  * And diffSet is used for optimizing memory usage.
  *
@@ -67,7 +67,7 @@ const diffSet = new Set([
 const isQdTextChar = (char: string): boolean => {
   assert(char.length === 1);
   if (char === DQUOTE) return false;
-  if (char === REVERSE_DOLIDUS) return false;
+  if (char === REVERSE_SOLIDUS) return false;
   return tcharSet.has(char) || diffSet.has(char);
 };
 
@@ -133,11 +133,11 @@ const getStringInnerQuotations = (
       break;
     }
 
-    if (input[position] !== REVERSE_DOLIDUS) {
+    if (input[position] !== REVERSE_SOLIDUS) {
       return undefined;
     }
 
-    // input[position] is REVERSE_DOLIDUS.
+    // input[position] is REVERSE_SOLIDUS.
 
     position++;
 
