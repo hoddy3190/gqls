@@ -483,3 +483,24 @@ export const parseMediaRange = (str: string): MediaType[] | undefined => {
 
   return mediaRange;
 };
+
+/**
+ * check if the given string is a valid media type
+ */
+export const includeMediaType = (
+  mediaRange: MediaType[],
+  mediaType: MediaType
+): boolean => {
+  return (
+    mediaRange.find((m) => {
+      if (m.type === "*" && m.subtype === "*") {
+        return true;
+      } else if (m.type === mediaType.type && m.subtype === "*") {
+        return true;
+      } else if (m.type === mediaType.type && m.subtype === mediaType.subtype) {
+        return true;
+      }
+      return false;
+    }) !== undefined
+  );
+};
