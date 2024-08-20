@@ -104,7 +104,7 @@ const isNonEmptyStringRecord = (o: unknown): o is Record<string, unknown> => {
 }
 
 const isWellFormedGqlRequest = (data: unknown): data is WellFormedGqlRequest => {
-    if (!isNonEmptyStringRecord(data)) return false;
+    if (!isStringRecord(data)) return false;
 
     const len = Object.keys(data).length;
     // The key "query" is required, and the keys "operationName", "variables", and "extensions" are optional.
@@ -113,24 +113,29 @@ const isWellFormedGqlRequest = (data: unknown): data is WellFormedGqlRequest => 
 
     let keyCount = 0;
 
-    if (data["query"] === undefined || typeof data["query"] !== "string") return false;
+    // @spec: S21, S65
+    if (!("query" in data) || typeof data["query"] !== "string") return false;
     keyCount++;
 
-    if (data["operationName"] !== undefined) {
+    // @spec: S22, S66
+    if ("operationName" in data) {
         if (typeof data["operationName"] !== "string") return false;
         keyCount++;
     }
 
-    if (data["variables"] !== undefined) {
+    // @spec: S23, S67
+    if ("variables" in data) {
         if (!isStringRecord(data["variables"])) return false;
         keyCount++;
     }
 
-    if (data["extensions"] !== undefined) {
+    // @spec: S24, S68
+    if ("extensions" in data) {
         if (!isStringRecord(data["extensions"])) return false;
         keyCount++;
     }
 
+    // @spec: S69
     if (keyCount !== len) return false;
 
     return true;
@@ -227,42 +232,10 @@ export const handle = (req: Request): Response => {
             return new Response("Bad request", { status: 400 });
         }
 
-        // @spec: S65
-        const query = body.query;
-        if (typeof query !== "string") {
+        if (!isWellFormedGqlRequest(body)) {
             // @spec: S5, S95, S97, S98
             return new Response("Bad request", { status: 400 });
         }
-
-        // @spec: S66
-        const operationName = body.operationName;
-        if (operationName !== undefined && typeof operationName !== "string") {
-            // @spec: S5, S95, S97, S98
-            return new Response("Bad request", { status: 400 });
-        }
-
-        // @spec: S67
-        const variables = body.variables;
-        if (variables !== undefined && typeof variables !== "object") {
-            // @spec: S5, S95, S97, S98
-            return new Response("Bad request", { status: 400 });
-        }
-
-        // @spec: S68
-        const extensions = body.extensions;
-        if (extensions !== undefined && typeof extensions !== "object") {
-            // @spec: S5, S95, S97, S98
-            return new Response("Bad request", { status: 400 });
-        }
-
-        // @spec: S69
-        if (Object.keys(body).length > 4) {
-            // @spec: S5, S95, S97, S98
-            return new Response("Bad request", { status: 400 });
-        }
-
-
-
 
         // TODO: S41 は Apollo Server を参照して実装する
         // if (queryParam.kind != "string") {
