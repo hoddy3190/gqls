@@ -3,6 +3,8 @@ import { execute, specifiedRules, validate } from "graphql";
 import * as HEADER_KEY from "./header.js";
 import { includeMediaType, MediaType, parseMediaRange, parseMediaType } from "./media-type.js";
 import { parse } from "path/posix";
+import { assert } from "node:console";
+import { GqlRequestError, isGqlRequestError, isRequestError, MaybeGqlRequestError, RequestError, Result, Success } from "./type.js";
 
 // S18
 const DEFAULT_ENCODING = "utf-8";
@@ -141,6 +143,126 @@ const isWellFormedGqlRequest = (data: unknown): data is WellFormedGqlRequest => 
     return true;
 }
 
+export const makeGqlReq = (data: Request): MaybeGqlRequestError<WellFormedGqlRequest> => {
+    // if (data.method) {
+
+    // } else if (data.method) {
+
+    // }
+    // else {
+
+    // }
+    return { data: {} as WellFormedGqlRequest };
+}
+
+export const makeGqlReqFromGetReq = (req: Request): Result<WellFormedGqlRequest> => {};
+
+
+export const makeGqlReqFromPostReq = (req: Request): Result<WellFormedGqlRequest> => {
+
+}
+
+export const getDocument = (req: Request): Result<WellFormedGqlRequest> => {
+    const wellFormedGqlRequest = makeGqlReq(req);
+    if (isGqlRequestError(wellFormedGqlRequest)) {
+        return wellFormedGqlRequest;
+    }
+
+    let document;
+    try {
+        document = parse(wellFormedGqlRequest.data.query);
+    } catch (e) {
+        return { errors: [] };
+    }
+
+    const validationErrors = validate(schema, document, specifiedRules);
+    if (validationErrors.length > 0) {
+        // @spec: S94, S109, S117
+        // TODO: cache
+        return { errors: [] };
+    }
+
+    return { data: {
+        ...wellFormedGqlRequest,
+        document
+    }}
+}
+
+export const getDocument = (document: string): MaybeGqlRequestError<{document: string}> => {
+    let document;
+    try {
+        document = parse(wellFormedReq.query);
+    } catch (e) {
+        return { errors: [] };
+    }
+
+    const validationErrors = validate(schema, document, specifiedRules);
+    if (validationErrors.length > 0) {
+        // @spec: S94, S109, S117
+    }
+    return document;
+}
+
+export const validate = (schema, document, specifiedRules): GqlRequestError | null => {
+    const validationErrors = validate(schema, document, specifiedRules);
+    if (validationErrors.length > 0) {
+        // @spec: S94, S109, S117
+    }
+    return null;
+}
+
+
+
+export const execute = (req: Request): MaybeGqlFieldErrorResult<string> => {
+
+
+}
+
+// バリデーションからレスポンスまで
+export const processGql = (req: Request): GqlOverHttpResult<string> => {
+    const wellFormedGqlRequestResult = makeGqlReq(req);
+    if (isGqlRequestError(wellFormedGqlRequestResult)) {
+        return wellFormedGqlRequestResult;
+    }
+
+    const documentResult = getDocument(wellFormedGqlRequestResult.data.query);
+    if (isRequestError(documentResult)) {
+        return documentResult;
+    }
+
+    const validationResult = validate(schema, documentResult.data, {});
+    if (validationResult !== null) {
+        return validationResult;
+    }
+
+    const executeResult = execute({
+        schema,
+        document,
+        rootValue,
+        contextValue,
+        variableValues,
+        operationName,
+        fieldResolver,
+        typeResolver,
+    });
+    if (isGqlFieldError(executeResult)) {
+        return executeResult;
+    }
+
+    return {
+        data: executeResult,
+        extensions: {}
+    }
+}
+
+export const convertGqlResultToResponse = (result: GqlOverHttpResult<string>): Response => {
+    return new Response(result.gqlResult, {status: result.httpStatusCode});
+}
+
+export const handle = (req: Request): Response => {
+    const result = processGql(req) as GqlOverHttpResult<string>;
+    return convertGqlResultToResponse(result);
+}
 
 // what is "well-formed GraphQL-over-HTTP request"?
 
@@ -233,7 +355,7 @@ export const handle = (req: Request): Response => {
         }
 
         if (!isWellFormedGqlRequest(body)) {
-            // @spec: S5, S95, S97, S98
+            // @spec: S5, S95, S97, S98, S109, S115
             return new Response("Bad request", { status: 400 });
         }
 
@@ -258,7 +380,7 @@ export const handle = (req: Request): Response => {
         const queryParam = searchParams.get("query");
         // @spec: S21
         if (queryParam === null) {
-            // @spec: S5, S95, S97, S98, S115
+            // @spec: S5, S95, S97, S98, S115, S109
             // S115 examples POST requests, but as the interpretation of S115, it is also applicable to GET requests.
             return makeErrorResponse(400);
         }
@@ -285,7 +407,7 @@ export const handle = (req: Request): Response => {
             try {
                 variables = JSON.parse(variablesParam);
             } catch (e) {
-                // @spec: S5, S95, S97, S98, S43
+                // @spec: S5, S95, S97, S98, S43, S109
                 return new Response("Bad request", { status: 400 });
             }
         }
@@ -297,7 +419,7 @@ export const handle = (req: Request): Response => {
             try {
                 extensions = JSON.parse(extensionsParam);
             } catch (e) {
-                // @spec: S5, S95, S97, S98, S43
+                // @spec: S5, S95, S97, S98, S43, S109
                 return new Response("Bad request", { status: 400 });
             }
         }
@@ -308,34 +430,31 @@ export const handle = (req: Request): Response => {
 
 
     // @spec: S90
-    if (isWellFormedGraphQLRequest(req)) {
-        // TODO: @spec: S71, S72, S73
+    // assert(data is WellFormedGqlRequest);
 
+    // TODO: @spec: S71, S72, S73
+    // 以降は、wellformedgqlresponse を返さないといけない！
 
-        // @spec: S116
-        // isWellFormedGraphQLRequest の前か後か、パースはどっちで実行するのか？
-        let document;
-        try {
-            document = parse(source);
-        } catch (syntaxError) {
-            return { errors: [syntaxError] };
-        }
+    // @spec: S116
+    // isWellFormedGraphQLRequest の前か後か、パースはどっちで実行するのか？
+    let document;
+    try {
+        document = parse(source);
+    } catch (syntaxError) {
+        return { errors: [syntaxError] };
+    }
 
-
-
-        // @spec: S91, S92
-        // We use default validation rules (= specifiedRules).
-        // They also contain a depth limit rule.
-        const validationErrors = validate(schema, document, specifiedRules);
-        if (validationErrors.length > 0) {
-            // @spec: S94, S109, S117
-            // TODO: cache
-            return makeErrorResponse(400);
-        }
-    } else {
-        // @spec: S109
+    // @spec: S91, S92
+    // We use default validation rules (= specifiedRules).
+    // They also contain a depth limit rule.
+    const validationErrors = validate(schema, document, specifiedRules);
+    if (validationErrors.length > 0) {
+        // @spec: S94, S109, S117
+        // TODO: cache
         return makeErrorResponse(400);
     }
+
+    // これ以降は statusCodee は 200 である
 
     // @spec: S93
     execute({
@@ -351,6 +470,8 @@ export const handle = (req: Request): Response => {
 
     return new Response("", {
         // TODO: @spec: S100
+        // data が null はどうする？ => S101 に書いてある
+        // @spec: S120
         status: 200,
         headers: {
             // @spec: S75, S76
