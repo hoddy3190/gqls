@@ -1,0 +1,11 @@
+{
+    "S38": "client specification, so out of range.",
+    "S39": "client specification, so out of range.",
+    "S62": "client specification, so out of range.",
+    "S70": "test",
+    "S87": "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
+    "S89": "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
+    "S99": "meta information (the description of the specification)",
+    "S113": "meta information (the description of the specification)"
+}
+
