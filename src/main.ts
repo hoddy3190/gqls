@@ -137,12 +137,12 @@ export const validatePostRequestHeaders = (
     // S5, S95, S97, S98
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S16                                         S35, S36, S37, S76, S78, S79, S81, S86
+  // @spec: S16, S76, S77, S78                                         S35, S36, S37, S76, S78, S79, S81, S86
   // We don't check whether the Accept header contains application/json because of S37.
   // application/json is no longer required after the watershed.
   // We support application/graphql-response+json only. <-> TODO: 矛盾 S80
   if (!includeMediaType(mediaRange, GQL_RESPONSE_MEDIA_TYPE)) {
-    // @spec:                                          S5, S95, S97, S98, S77
+    // @spec: S73, S74                                         S5, S95, S97, S98, S77
     return buildSimpleGqlRequestErrorResponse(406);
   }
 
@@ -356,11 +356,14 @@ export const buildGqlOverHttpResult = <T>(
 ): GqlResponseAndHttpStatus<T> => {
   if (isGqlSuccessOrPartialSuccess(gqlResponse)) {
     return {
+      // @spec: S111, S112, S113, S114
       httpResult: { statusCode: 200, message: null },
       gqlResponse,
     };
   }
   return {
+    // @spec: S115, S116, S117
+    // TODO: 5xx
     httpResult: { statusCode: 400, message: null },
     gqlResponse,
   };

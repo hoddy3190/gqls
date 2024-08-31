@@ -4,7 +4,7 @@ import { StatusCode } from "./type.js";
 export const CONTENT_TYPE_KEY = "Content-Type";
 export const ACCEPT_KEY = "Accept";
 
-// @spec:                                  S96
+// @spec: S87
 export const DEFAULT_ERROR_STATUS_CODE = 400;
 
 export const getStatusText = (statusCode: StatusCode): string => {
