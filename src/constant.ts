@@ -4,7 +4,7 @@ import { StatusCode } from "./type.js";
 export const CONTENT_TYPE_KEY = "Content-Type";
 export const ACCEPT_KEY = "Accept";
 
-// @spec: S96
+// @spec:                                  S96
 export const DEFAULT_ERROR_STATUS_CODE = 400;
 
 export const getStatusText = (statusCode: StatusCode): string => {
@@ -23,13 +23,14 @@ export const getStatusText = (statusCode: StatusCode): string => {
   }
 };
 
-// @spec: S18
+// @spec: S22
 export const DEFAULT_ENCODING = "utf-8";
 
 export const GQL_RESPONSE_MEDIA_TYPE: MediaType = {
   type: "application",
   subtype: "graphql-response+json",
   mediaType: "application/graphql-response+json",
+  // @spec: S22
   parameters: { charset: DEFAULT_ENCODING },
 };
 export const GQL_RESPONSE_CONTENT_TYPE = serializeMediaType(

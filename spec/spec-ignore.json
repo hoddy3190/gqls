@@ -1,11 +1,55 @@
 {
-    "S38": "client specification, so out of range.",
-    "S39": "client specification, so out of range.",
-    "S62": "client specification, so out of range.",
-    "S70": "test",
-    "S87": "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
-    "S89": "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
-    "S99": "meta information (the description of the specification)",
-    "S113": "meta information (the description of the specification)"
+    "S1"  : "Overview",
+    "S2"  : "Overview",
+    "S3"  : "Overview",
+    "S4"  : "Overview",
+    "S5"  : "Overview",
+    "S6"  : "Overview",
+    "S7"  : "Overview",
+    "S9"  : "Url setting is out of this library range",
+    "S10" : "Url setting is out of this library range",
+    "S11" : "Url setting is out of this library range",
+
+    //"S12": "TODO",
+    "S13": "Execution logic is out of this library range",
+    "S14": "Url setting is out of this library range",
+    "S15": "Url setting is out of this library range",
+
+    // S17 : TODO
+
+    "S18": "Meta information (the description of the specification)",
+    "S21": "Meta information (the description of the specification)",
+
+    // S22: TODO Accept encodng
+
+    "S40": "Client specification is out of this library range.",
+    "S41": "Client specification is out of this library range.",
+
+
+    "S49": "test",
+    "S50": "test",
+
+    "S59": "Client specification is out of this library range.",
+    "S67": "test",
+
+    "S69": "突然すぎて対応できない",
+
+    "S72": "",
+
+
+
+
+
+
+
+
+    "S38" : "client specification, so out of range.",
+    "S39" : "client specification, so out of range.",
+    "S62" : "client specification, so out of range.",
+    "S70" : "test",
+    "S87" : "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
+    "S89" : "the specification that is valid until 2025-01-01T00:00:00Z only, which we ignore it",
+    "S99" : "Meta information (the description of the specification)",
+    "S113": "Meta information (the description of the specification)"
 }
 

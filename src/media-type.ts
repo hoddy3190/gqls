@@ -158,7 +158,7 @@ export interface MediaType {
   type: string;
   subtype: string;
   mediaType: string;
-  parameters: Map<string, string>;
+  parameters: Record<string, string>;
 }
 
 /**

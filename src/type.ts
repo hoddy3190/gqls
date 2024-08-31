@@ -1,84 +1,100 @@
-export type Location = {
-  line: number;
-  column: number;
-};
+export type StatusCode = 200 | 400 | 405 | 406;
+
+// @spec: S24, S31
+export interface GqlRequest {
+  // @spec: S25, S30
+  query: string;
+  // @spec: S26
+  operationName: string | null;
+  // @spec: S27
+  variables: Record<string, unknown>;
+  // @spec: S28
+  extensions: Record<string, unknown>;
+  // @spec: S29
+  // not include the GraphQL schema and “initial value”
+}
+
+export interface Location {
+  readonly line: number;
+  readonly column: number;
+}
 
 export type Path = (string | number)[];
 
-export type GqlErrorFormat = {
-  message: string;
-  locations?: Location[];
-  path?: Path;
-};
-
-type ReplaceKeys2<U, T, Y> = {
-  [K in keyof U]: K extends T ?
-    K extends keyof Y ? Y[K] : never : U[K]
-};
-
-type ReplaceKey<U, T, Y> = {
-  [K in keyof U]: K extends T ? Y : U[K]
-};
-
-export interface GqlSuccess<T> {
-  data: T;
-  extensions: Record<string, unknown>;
-};
-
-
-
-{
-  data: GqlSuccess<T>["data"];
-  extensions: {
-    httpStatusCode: 200;
-  } & GqlSuccess<T>["extensions"];
+export interface GqlError {
+  readonly message: string;
+  readonly locations?: Location[];
+  readonly path?: Path;
 }
 
+export interface GqlExtensions {
+  extensions: Record<string, unknown>;
+}
 
-{
+export interface GqlSuccess<T> extends GqlExtensions {
   data: T;
-  extensions: {
-    httpStatusCode: 200;
-  };
-};
+}
 
-export type GqlRequestError = {
-  errors: GqlErrorFormat[];
-  extensions?: any[];
-};
-
-export type GqlPartialSuccess<T> = {
+// The errors in GqlPartialSuccess are field errors.
+export interface GqlPartialSuccess<T> extends GqlExtensions {
   data: T | null;
-  errors: GqlErrorFormat[];
-  extensions?: any[];
-};
+  errors: GqlError[];
+}
 
-export type GqlFieldError<T> = GqlPartialSuccess<T>;
+export interface GqlRequestError extends GqlExtensions {
+  errors: GqlError[];
+}
 
-export type Success<T> = {
-  data: T;
-};
-export type RequestError = GqlRequestError;
-export type MaybeGqlRequestError<T> = Success<T> | GqlRequestError;
+// @spec: 70
+// GqlResponse type expresses "well-formed GraphQL response" which is used in GraphQL Over HTTP.
+export type GqlResponse<T> =
+  | GqlSuccess<T>
+  | GqlPartialSuccess<T>
+  | GqlRequestError;
 
-export const isGqlRequestError = <T>(result: MaybeGqlRequestError<T>): result is GqlRequestError => {
-  if ("errors" in result) return true;
+export const isGqlSuccessOrPartialSuccess = <T>(
+  result: GqlResponse<T>
+): result is GqlSuccess<T> | GqlPartialSuccess<T> => {
+  if ("data" in result) return true;
   return false;
 };
 
-export type GqlResult<T> = GqlSuccess<T> | GqlRequestError | GqlFieldError<T>;
-
-export type GqlOverHttpResult<T> = {
-  httpResult: {
-    statusCode: number;
-    message: string | null;
-  }
-  gqlResult: GqlResult<T>;
+export const isGqlRequestError = <T>(
+  result: GqlPartialSuccess<T> | GqlRequestError
+): result is GqlRequestError => {
+  if (!("data" in result)) return true;
+  return false;
 };
 
-// or
-// export type GqlOverHttpSuccess<T> = ReplaceKey<GqlSuccess<T>, "extensions", { httpStatusCode: 200 }>;
-// export type GqlOverHttpRequestError = ReplaceKey<GqlRequestError, "extensions", { httpStatusCode: number }>;
-// export type GqlOverHttpFiledError<T> = ReplaceKey<GqlFieldError<T>, "extensions", { httpStatusCode: 200 }>;
-// export type GqlOverHttpResult<T> = GqlOverHttpSuccess<T> | GqlOverHttpRequestError | GqlOverHttpFiledError<T>;
+export interface HttpResult {
+  statusCode: number;
+  message: string | null;
+}
 
+export type GqlResponseAndHttpStatus<T> = {
+  gqlResponse: GqlResponse<T>;
+  httpResult: HttpResult;
+};
+
+export type GqlImpl<T> = (gqlRequest: GqlRequest) => Promise<GqlResponse<T>>;
+
+type Success<T> = {
+  data: T;
+};
+export type RequestError = GqlRequestError;
+
+export interface GqlRequestErrorResponseAndHttpStatus {
+  gqlResponse: GqlRequestError;
+  httpResult: HttpResult;
+}
+
+export type MaybeGqlRequestError<T> =
+  | Success<T>
+  | GqlRequestErrorResponseAndHttpStatus;
+
+export const isGqlRequestErrorResponseAndHttpStatus = <T>(
+  result: MaybeGqlRequestError<T>
+): result is GqlRequestErrorResponseAndHttpStatus => {
+  if ("gqlResponse" in result || "httpResult" in result) return true;
+  return false;
+};
