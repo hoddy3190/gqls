@@ -504,3 +504,16 @@ export const includeMediaType = (
     }) !== undefined
   );
 };
+
+/**
+ * check if the given string is a valid media type
+ */
+export const serializeMediaType = (mediaType: MediaType): string => {
+  return Object.entries(mediaType.parameters).reduce<string>(
+    (acc, [key, value]) => {
+      acc += ";" + key + "=" + value;
+      return acc;
+    },
+    mediaType.mediaType
+  );
+};
