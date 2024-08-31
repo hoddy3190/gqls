@@ -1,83 +1,117 @@
-import { GraphQLArgs, graphql } from "graphql";
-import {
-  GqlWellFormedRequest,
-  GqlResponse,
-  GqlError,
-  GqlExtensions,
-  GqlImpl,
-} from "./type.js";
+import { GraphQLArgs, ExecutionResult, graphql } from "graphql";
+import { GqlError, GqlExtensions, GqlImpl } from "./type.js";
 
-type ExecutionResult = NonNullable<Awaited<ReturnType<typeof graphql>>>;
+// type ExecutionResult = NonNullable<Awaited<ReturnType<typeof graphql>>>;
 type DataType = ExecutionResult["data"];
 type ErrorsType = ExecutionResult["errors"];
 type ExtensionsType = ExecutionResult["extensions"];
 
-// Omit properties which is contained in GqlWellFormedRequest
-export type GraphQLJSArgs = Omit<
+// Omit properties which are expressed in GqlRequest
+export type GraphqlJsArgs = Omit<
   GraphQLArgs,
-  "operationName" | "source" | "variableValues"
+  "source" | "operationName" | "variableValues"
 >;
-export type ConverterArgs = GraphQLJSArgs & { gqlRequest: GqlWellFormedRequest };
-export type ImplArgs = ConverterArgs & { converter?: Converter };
+// export type ConverterArgs = GraphqlJsArgs & { gqlRequest: GqlRequest };
+// export type ImplArgs = ConverterArgs & { converter?: Converter };
 
-export type Converter = (args: ConverterArgs) => GraphQLArgs;
+// export type Converter = (args: ConverterArgs) => GraphQLArgs;
 
-const defaultConverter: Converter = (args) => {
-  const {
-    schema,
-    rootValue,
-    contextValue,
-    fieldResolver,
-    typeResolver,
-    gqlRequest,
-  } = args;
-  return {
-    schema,
-    rootValue,
-    contextValue,
-    fieldResolver,
-    typeResolver,
-    source: gqlRequest.query,
-    operationName: gqlRequest.operationName,
-    variableValues: gqlRequest.variables,
-  };
-};
+// const defaultConverter: Converter = (args) => {
+//   const {
+//     schema,
+//     rootValue,
+//     contextValue,
+//     fieldResolver,
+//     typeResolver,
+//     gqlRequest,
+//   } = args;
+//   return {
+//     schema,
+//     rootValue,
+//     contextValue,
+//     fieldResolver,
+//     typeResolver,
+//     source: gqlRequest.query,
+//     operationName: gqlRequest.operationName,
+//     variableValues: gqlRequest.variables,
+//   };
+// };
 
-export const gqlImpl: GqlImpl<ImplArgs, DataType> = async (
-  args: ImplArgs
-): Promise<GqlResponse<DataType>> => {
-  const graphqlArgs = (args.converter ?? defaultConverter)(args);
-  const result = await graphql(graphqlArgs);
+export const makeGqlImpl = (args: GraphqlJsArgs): GqlImpl<DataType> => {
+  return async (gqlRequest) => {
+    const result = await graphql({
+      ...args,
+      source: gqlRequest.query,
+      operationName: gqlRequest.operationName,
+      variableValues: gqlRequest.variables,
+    });
 
-  if ("data" in result) {
-    if ("errors" in result) {
-      return {
-        data: result.data,
-        errors: convertErrors(result.errors),
-        extensions: convertExtensions(result.extensions),
-      };
+    if ("data" in result) {
+      if ("errors" in result) {
+        return {
+          data: result.data,
+          errors: convertErrors(result.errors),
+          extensions: convertExtensions(result.extensions),
+        };
+      } else {
+        return {
+          data: result.data,
+          extensions: convertExtensions(result.extensions),
+        };
+      }
     } else {
-      return {
-        data: result.data,
-        extensions: convertExtensions(result.extensions),
-      };
+      if ("errors" in result) {
+        return {
+          errors: convertErrors(result.errors),
+          extensions: convertExtensions(result.extensions),
+        };
+      }
     }
-  } else {
-    if ("errors" in result) {
-      return {
-        errors: convertErrors(result.errors),
-        extensions: convertExtensions(result.extensions),
-      };
-    }
-  }
 
-  // This should not be reached.
-  // If this is reached, it means that the behavior of graphql function has changed.
-  return {
-    errors: [{ message: "Unexpected error" }],
-    extensions: {},
+    // This should not be reached.
+    // If this is reached, it means that the behavior of graphql function has changed.
+    return {
+      errors: [{ message: "Unexpected error" }],
+      extensions: {},
+    };
   };
 };
+
+// export const gqlImpl: GqlImpl<ImplArgs, DataType> = async (
+//   args: ImplArgs
+// ): Promise<GqlResponse<DataType>> => {
+//   const graphqlArgs = (args.converter ?? defaultConverter)(args);
+//   const result = await graphql(graphqlArgs);
+
+//   if ("data" in result) {
+//     if ("errors" in result) {
+//       return {
+//         data: result.data,
+//         errors: convertErrors(result.errors),
+//         extensions: convertExtensions(result.extensions),
+//       };
+//     } else {
+//       return {
+//         data: result.data,
+//         extensions: convertExtensions(result.extensions),
+//       };
+//     }
+//   } else {
+//     if ("errors" in result) {
+//       return {
+//         errors: convertErrors(result.errors),
+//         extensions: convertExtensions(result.extensions),
+//       };
+//     }
+//   }
+
+//   // This should not be reached.
+//   // If this is reached, it means that the behavior of graphql function has changed.
+//   return {
+//     errors: [{ message: "Unexpected error" }],
+//     extensions: {},
+//   };
+// };
 
 const convertErrors = (errors: ErrorsType): GqlError[] => {
   return (errors ?? []).map((e) => {
