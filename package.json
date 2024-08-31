@@ -1,4 +1,38 @@
 {
+  "name": "graphql-http-req-handler",
+  "version": "1.0.0",
+  "description": "A minimum GraphQL server, but 実用的。graphql-http-req-handler is an implementation of graphql-over-http.",
+  "keywords": [
+    "graphql",
+    "server",
+    "http",
+    "TypeScript"
+  ],
+  "homepage": "https://github.com/hoddy3190/graphql-http-req-handler",
+  "bugs": {
+    "url": "https://github.com/hoddy3190/graphql-http-req-handler/issues"
+  },
+  "license": "MIT",
+  "author": "Hodaka Suzuki (@hoddy3190)",
+  "funding": {
+    "type": "individual",
+    "url": "TODO:"
+  },
+  "files": [
+    "TODO"
+  ],
+  "main": "TODO",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoddy3190/graphql-http-req-handler.git"
+  },
+  "scripts": {
+    "test": "npx tsc && node out/main.test.js"
+  },
+  "config": {},
+  "dependencies": {
+    "graphql": "^16.9.0"
+  },
   "devDependencies": {
     "@types/node": "^22.4.0",
     "@typescript-eslint/eslint-plugin": "^7.17.0",
@@ -9,7 +43,8 @@
     "spec-md": "^3.1.0",
     "typescript": "^5.5.4"
   },
-  "dependencies": {
-    "graphql": "^16.9.0"
-  }
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "type": "module"
 }
