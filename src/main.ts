@@ -28,30 +28,6 @@ import {
 const GET_REQ_MEDIA_TYPE = "application/x-www-form-urlencoded";
 const POST_REQ_MEDIA_TYPE = "application/json";
 
-// const RECOGNIZED_MEDIA_TYPE = {
-//     // S14
-//     REQ: new Set<MIME_TYPE.Typ>({
-//         MIME_TYPE.JSON,
-//     }),
-//     // S15, S16
-//     RES:  new Set<MIME_TYPE.Typ>({
-//         MIME_TYPE.JSON,
-//         MIME_TYPE.GRAPHQL_RES,
-//     }),
-// };
-
-// S19
-type ServerAcceptableMethods =
-  | "POST" // MUST
-  | "GET"; // MAY
-
-const SERVER_MUST_SUPPORT_MIME_TYPES = new Set([
-  // S80, S11, S14
-  "application/json",
-  // S81
-  "application/graphql-response+json",
-]);
-
 const buildSimpleGqlRequestErrorResponse = (
   statusCode: StatusCode = DEFAULT_ERROR_STATUS_CODE
 ): GqlRequestErrorResponseAndHttpStatus => {
@@ -120,10 +96,11 @@ const isGqlRequest = (data: unknown): data is GqlRequest => {
 export const validatePostRequestHeaders = (
   headers: Request["headers"]
 ): GqlRequestErrorResponseAndHttpStatus | null => {
-  // @spec: S35                                         S26, S88, S25
-  // S88 mentions that a request that doesn't contain Accept header should be treated as if it had Accept: application/graphql-response+json,
-  // but S26 says the server may respond with an error against such a request.
-  // In this implementation, we treat such a request as an error because of simplicity.
+  // @spec: S35, S36, S79
+  // While S79 states that a request without an Accept header SHOULD be treated
+  // as if it included `Accept: application/graphql-response+json`,
+  // S36 indicates that the server MAY respond with an error to such a request.
+  // For simplicity, this library treats such requests as errors.
   const clientAcceptableMediaType = headers.get(ACCEPT_KEY);
   if (!clientAcceptableMediaType) {
     // S5: 4xx or 5xx status code
@@ -205,11 +182,11 @@ export const buildGqlRequestFromPost = async (
 export const validateGetRequestHeaders = (
   headers: Request["headers"]
 ): GqlRequestErrorResponseAndHttpStatus | null => {
-  // @spec: S35                                         S26, S88, S25
-  // S35: SHOULD, but not special reason, we reject the request.
-  // S88 mentions that a request that doesn't contain Accept header should be treated as if it had Accept: application/graphql-response+json,
-  // but S26 says the server may respond with an error against such a request.
-  // In this implementation, we treat such a request as an error because of simplicity.
+  // @spec: S35, S36, S79
+  // While S79 states that a request without an Accept header SHOULD be treated
+  // as if it included `Accept: application/graphql-response+json`,
+  // S36 indicates that the server MAY respond with an error to such a request.
+  // For simplicity, this library treats such requests as errors.
   const clientAcceptableMediaType = headers.get(ACCEPT_KEY);
   if (!clientAcceptableMediaType) {
     // S5: 4xx or 5xx status code
