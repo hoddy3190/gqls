@@ -57,36 +57,37 @@ const isGqlRequest = (data: unknown): data is GqlRequest => {
   if (!isStringRecord(data)) return false;
 
   const len = Object.keys(data).length;
-  if (len < 1 || len > 4) return false;
   // Since the key "query" is required, the length must be at least 1.
   // The keys "operationName", "variables", and "extensions" are optional, so the length can be up to 4.
+  if (!(len >= 1 && len <= 4)) return false;
 
   let keyCount = 0;
 
-  // @spec: S25, S32, S34, S62
-  // does not have to parse or validate the query string.
-  if (!("query" in data) || typeof data["query"] !== "string") return false;
+  // @spec: S25, S32, S62
+  if (!("query" in data)) return false;
   keyCount++;
+  // @spec: S25, S32, S34, S62
+  if (typeof data["query"] !== "string") return false;
 
   // @spec: S26, S63
   if ("operationName" in data) {
+    keyCount++;
     // @spec: S32
     if (typeof data["operationName"] !== "string") return false;
-    keyCount++;
   }
 
   // @spec: S27, S64
   if ("variables" in data) {
+    keyCount++;
     // @spec: S32
     if (!isStringRecord(data["variables"])) return false;
-    keyCount++;
   }
 
   // @spec: S28, S65
   if ("extensions" in data) {
+    keyCount++;
     // @spec: S32
     if (!isStringRecord(data["extensions"])) return false;
-    keyCount++;
   }
 
   // @spec: S66
