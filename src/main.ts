@@ -330,7 +330,7 @@ export const buildGqlRequest = async (
     return buildGqlRequestFromGet(httpRequest);
   }
   // @spec: S23
-  // Other HTTP methods than "POST" are "GET" only in this library.
+  // In this library, the only HTTP method other than "POST" is "GET."
   return buildSimpleGqlRequestErrorResponse(405);
 };
 
