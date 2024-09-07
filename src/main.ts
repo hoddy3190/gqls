@@ -231,62 +231,50 @@ export const buildGqlRequestFromGet = (
   }
 
   // @spec: S42
+  // URL class is implemented by WHATWG URL Standard.
+  // https://nodejs.org/api/url.html#the-whatwg-url-api
   if (!URL.canParse(httpRequest.url)) {
-    // @spec:                                    S5, S95, S97, S98
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S47                                         S45
+  // @spec: S47
   const searchParams = new URL(httpRequest.url).searchParams;
 
   const query = searchParams.get("query");
-  // @spec: S43                                         S21
+  // @spec: S43
   if (query === null) {
-    // @spec:                                          S5, S95, S97, S98, S115, S109
-    // S115 examples POST requests, but as the interpretation of S115, it is also applicable to GET requests.
     return buildSimpleGqlRequestErrorResponse();
   }
-
-  // @spec: S51                                         S41, S50, S51, S52
-  // S41: "query" is string type (not null type) because it passes null check.
-  //      "startWith" method also checks if the query value is empty or not.
-  // TODO: Queryは許可する？
+  // @spec: S51
+  // The logic for checking if the value of "query" indicates a mutation is based on startsWith("query").
+  // As for "operationName", there is no specific handling because of no logic idea.
   if (!query.startsWith("query")) {
     return buildSimpleGqlRequestErrorResponse(405);
   }
 
-  // @spec: S44                                         S22, S42, S44, S46
-  // TODO: @spec: S46
-  // If the operationName parameter is present, it is string. If not, it is null.
-  // S44 doesn't affect the implementation.
-  // If searchParams.get("operationName") is an empty string, null assigns operationNameParam because of S46.
+  // @spec: S44, S46
   const operationNameStr = searchParams.get("operationName");
   // @spec: S48
+  // "operationName is null" is equivalent to omitting the operationName parameter.
   const operationName = operationNameStr !== "" ? operationNameStr : null;
 
-  // @spec:                                          S23, S43
   let variables = {};
   const variablesStr = searchParams.get("variables");
-  // TODO: permit empty string?
   if (variablesStr) {
     try {
       // @spec: S45
       variables = JSON.parse(variablesStr);
     } catch (e) {
-      // @spec:                                          S5, S95, S97, S98, S43, S109
       return buildSimpleGqlRequestErrorResponse();
     }
   }
 
-  // @spec:                                          S24, S43
   let extensions = {};
   const extensionsStr = searchParams.get("extensions");
-  // TODO: permit empty string?
   if (extensionsStr) {
     try {
       // @spec: S45
       extensions = JSON.parse(extensionsStr);
     } catch (e) {
-      // @spec:                                          S5, S95, S97, S98, S43, S109
       return buildSimpleGqlRequestErrorResponse();
     }
   }
