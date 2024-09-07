@@ -174,11 +174,6 @@ export const buildGqlRequestFromPost = async (
     return buildSimpleGqlRequestErrorResponse();
   }
 
-  // TODO: need null check?
-  if (typeof body !== "object") {
-    return buildSimpleGqlRequestErrorResponse();
-  }
-
   if (!isGqlRequest(body)) {
     return buildSimpleGqlRequestErrorResponse();
   }
