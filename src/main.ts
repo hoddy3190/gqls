@@ -199,19 +199,21 @@ export const validateGetRequestHeaders = (
     return buildSimpleGqlRequestErrorResponse();
   }
 
-  // S36, S37
-  // S35を上書き
+  // @spec: S37
+  // S37 implies that if a client supplies an Accept header,
+  // requests with an unparsable Accept header are not allowed.
   const acceptableMediaRange = parseMediaRange(clientAcceptableMediaType);
   if (!acceptableMediaRange) {
-    // S5, S95, S97, S98
+    // @spec: S86, S87, S88
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S16, S37, S38, S39                                         S35, S36, S37, S76, S78, S79, S81, S86
-  // We don't check whether the Accept header contains application/json because of S37.
-  // application/json is no longer required after the watershed.
-  // We support application/graphql-response+json only. <-> TODO: 矛盾 S80
+  // @spec: S16, S37, S38, S39, S76, S77, S78
+  // Due to S39, `application/json` is no longer required after the watershed,
+  // so this library does not check whether the Accept header includes `application/json`.
+  // TODO: S75
+  // This library doesn't know what to do in the case that the Accept header contains application/json but does not contain application/graphql-response+json.
   if (!includeMediaType(acceptableMediaRange, GQL_RESPONSE_MEDIA_TYPE)) {
-    // @spec:                                          S5, S95, S97, S98, S77
+    // @spec: S73, S74
     return buildSimpleGqlRequestErrorResponse(406);
   }
 
