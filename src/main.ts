@@ -217,28 +217,6 @@ export const validateGetRequestHeaders = (
     return buildSimpleGqlRequestErrorResponse(406);
   }
 
-  const contentType = headers.get(CONTENT_TYPE_KEY);
-  if (!contentType) {
-    // S5, S95, S97, S98
-    return buildSimpleGqlRequestErrorResponse();
-  }
-  const parsedContentType = parseMediaType(contentType);
-  if (parsedContentType === undefined) {
-    // S5, S95, S97, S98
-    return buildSimpleGqlRequestErrorResponse();
-  }
-  // @spec: S17, S42                                         S40
-
-  // S17 warns that supporting other media types rather than "application/json" can be insecure.
-  // But server should support "application/x-www-form-urlencoded" for GET requests.???
-
-  // It is not explicitly written that the Content-Type header is required for GET requests or Content-Type header should be "application/x-www-form-urlencoded".
-  // We interpret that S40 says the Content-Type header is required and should be "application/x-www-form-urlencoded".
-  if (parsedContentType.mediaType !== GET_REQ_MEDIA_TYPE) {
-    // @spec:                                          S5, S95, S97, S98
-    return buildSimpleGqlRequestErrorResponse();
-  }
-
   return null;
 };
 
