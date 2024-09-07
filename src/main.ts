@@ -171,16 +171,16 @@ export const buildGqlRequestFromPost = async (
     // @spec: S61
     body = await httpRequest.json();
   } catch (e) {
-    return buildSimpleGqlRequestErrorResponse(400);
+    return buildSimpleGqlRequestErrorResponse();
   }
 
   // TODO: need null check?
   if (typeof body !== "object") {
-    return buildSimpleGqlRequestErrorResponse(400);
+    return buildSimpleGqlRequestErrorResponse();
   }
 
   if (!isGqlRequest(body)) {
-    return buildSimpleGqlRequestErrorResponse(400);
+    return buildSimpleGqlRequestErrorResponse();
   }
   return { data: body };
 };
