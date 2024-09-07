@@ -1,6 +1,6 @@
 export type StatusCode = 200 | 400 | 405 | 406;
 
-// @spec: S24, S31
+// @spec: S24, S31, S61
 export interface GqlRequest {
   // @spec: S25, S30
   query: string;

@@ -168,7 +168,6 @@ export const buildGqlRequestFromPost = async (
   // @spec: S52
   let body: unknown;
   try {
-    // @spec: S61
     body = await httpRequest.json();
   } catch (e) {
     return buildSimpleGqlRequestErrorResponse();
