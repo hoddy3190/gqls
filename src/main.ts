@@ -53,41 +53,44 @@ const isNonEmptyStringRecord = (o: unknown): o is Record<string, unknown> => {
   return isStringRecord(o) && Object.keys(o).length > 0;
 };
 
-// @spec: S32
 const isGqlRequest = (data: unknown): data is GqlRequest => {
   if (!isStringRecord(data)) return false;
 
   const len = Object.keys(data).length;
-  // The key "query" is required, and the keys "operationName", "variables", and "extensions" are optional.
-  // At most these 4 keys are allowed.
   if (len < 1 || len > 4) return false;
+  // Since the key "query" is required, the length must be at least 1.
+  // The keys "operationName", "variables", and "extensions" are optional, so the length can be up to 4.
 
   let keyCount = 0;
 
-  // @spec: S34, S62                                         S21, S65
+  // @spec: S25, S32, S34, S62
   // does not have to parse or validate the query string.
   if (!("query" in data) || typeof data["query"] !== "string") return false;
   keyCount++;
 
-  // @spec: S63                                         S22, S66
+  // @spec: S26, S63
   if ("operationName" in data) {
+    // @spec: S32
     if (typeof data["operationName"] !== "string") return false;
     keyCount++;
   }
 
-  // @spec: S64                                         S23, S67
+  // @spec: S27, S64
   if ("variables" in data) {
+    // @spec: S32
     if (!isStringRecord(data["variables"])) return false;
     keyCount++;
   }
 
-  // @spec: S65                                         S24, S68
+  // @spec: S28, S65
   if ("extensions" in data) {
+    // @spec: S32
     if (!isStringRecord(data["extensions"])) return false;
     keyCount++;
   }
 
-  // @spec: S66                                         S69
+  // @spec: S66
+  // Other keys are not allowed.
   if (keyCount !== len) return false;
 
   return true;
