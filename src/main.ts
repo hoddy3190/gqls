@@ -318,11 +318,11 @@ export const buildHttpResponse = <T>(
   gqlResponseAndHttpStatus: GqlResponseAndHttpStatus<T>
 ): Response => {
   const { gqlResponse, httpResult } = gqlResponseAndHttpStatus;
+  // @spec: S70
   const response = new Response(JSON.stringify(gqlResponse), {
     status: httpResult.statusCode,
     headers: {
-      // @spec: S16, S17, S20, S71
-      // S17 discourages supporting other media types rather than "JSON".
+      // @spec: S71
       CONTENT_TYPE_KEY: GQL_RESPONSE_CONTENT_TYPE,
     },
   });
@@ -330,11 +330,12 @@ export const buildHttpResponse = <T>(
 };
 
 // @spec: S68
-// well‐formed GraphQL response. not only when the request is well-formed, but also when the request is not well-formed.
+// This library returns well-formed GraphQL responses not only for well-formed requests
+// but also for requests that are not well-formed.
 export const handle = async <T>(
   httpRequest: Request,
   // @spec: S8
-  // gqlImpl is usually made with GraphQL schema and resolver.
+  // gqlImpl is typically created using a GraphQL schema and resolvers.
   gqlImpl: GqlImpl<T>
 ): Promise<GqlResponseAndHttpStatus<T>> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
