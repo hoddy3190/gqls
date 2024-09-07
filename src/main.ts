@@ -107,25 +107,27 @@ export const validatePostRequestHeaders = (
     return buildSimpleGqlRequestErrorResponse();
   }
 
-  // S36, S37
-  // S35を上書き
+  // @spec: S37
+  // S37 implies that if a client supplies an Accept header,
+  // requests with an unparsable Accept header are not allowed.
   const mediaRange = parseMediaRange(clientAcceptableMediaType);
   if (!mediaRange) {
-    // S5, S95, S97, S98
+    // @spec: S86, S87, S88
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S16, S76, S77, S78                                         S35, S36, S37, S76, S78, S79, S81, S86
-  // We don't check whether the Accept header contains application/json because of S37.
-  // application/json is no longer required after the watershed.
-  // We support application/graphql-response+json only. <-> TODO: 矛盾 S80
+  // @spec: S16, S37, S38, S39, S76, S77, S78
+  // Due to S39, `application/json` is no longer required after the watershed,
+  // so this library does not check whether the Accept header includes `application/json`.
+  // TODO: S75
+  // This library doesn't know what to do in the case that the Accept header contains application/json but does not contain application/graphql-response+json.
   if (!includeMediaType(mediaRange, GQL_RESPONSE_MEDIA_TYPE)) {
-    // @spec: S73, S74                                         S5, S95, S97, S98, S77
+    // @spec: S73, S74
     return buildSimpleGqlRequestErrorResponse(406);
   }
 
   const contentType = headers.get(CONTENT_TYPE_KEY);
   // @spec: S53, S56, S57
-  // we don't use S57 options
+  // This library does not utilize the option to assume the media type as stated in S57.
   if (contentType === null) {
     return buildSimpleGqlRequestErrorResponse();
   }
@@ -135,13 +137,13 @@ export const validatePostRequestHeaders = (
     return buildSimpleGqlRequestErrorResponse();
   }
   // @spec: S54, S60
-  // 少し強い解釈だが、POSTリクエストのContent-Typeはapplication/jsonのみを許可する。
   if (parsedContentType.mediaType !== POST_REQ_MEDIA_TYPE) {
     return buildSimpleGqlRequestErrorResponse();
   }
   const charset = parsedContentType.parameters["charset"];
   // @spec: S54, S58
-  // 強い解釈charsetがセットされている場合は utf-8 でないといけない
+  // Although S58 states that servers MAY support media types other than "UTF-8",
+  // this library does not support them.
   if (charset !== undefined && charset !== DEFAULT_ENCODING) {
     return buildSimpleGqlRequestErrorResponse();
   }
