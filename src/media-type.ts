@@ -231,7 +231,7 @@ export const parseMediaType = (str: string): MediaType | undefined => {
     type,
     subtype,
     mediaType,
-    parameters: new Map<string, string>(),
+    parameters: {},
   };
 
   while (position < len) {
@@ -309,9 +309,9 @@ export const parseMediaType = (str: string): MediaType | undefined => {
     }
 
     // Priority logic of the same parameterName
-    if (result.parameters.has(parameterName)) continue;
+    if (result.parameters[parameterName]) continue;
 
-    result.parameters.set(parameterName, parameterValue);
+    result.parameters[parameterName] = parameterValue;
   }
 
   return result;
@@ -384,7 +384,7 @@ export const parseMediaRange = (str: string): MediaType[] | undefined => {
       type,
       subtype,
       mediaType,
-      parameters: new Map<string, string>(),
+      parameters: {},
     };
 
     while (position < len) {
@@ -473,9 +473,9 @@ export const parseMediaRange = (str: string): MediaType[] | undefined => {
       }
 
       // Priority logic of the same parameterName
-      if (result.parameters.has(parameterName)) continue;
+      if (result.parameters[parameterName]) continue;
 
-      result.parameters.set(parameterName, parameterValue);
+      result.parameters[parameterName] = parameterValue;
     }
 
     mediaRange.push(result);
