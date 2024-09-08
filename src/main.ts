@@ -139,10 +139,11 @@ export const validatePostRequestHeaders = (
     // @spec: S86, S87, S88
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S16, S37, S38, S39, S76, S77, S78
+  // @spec: S16, S37, S38, S39, S72, S76, S77, S78
   // Due to S39, `application/json` is no longer required after the watershed,
   // so this library does not check whether the Accept header includes `application/json`.
-  // TODO: S75
+  // S72 states that the server MUST respect the client's Accept header,
+  // but this library does not support media types other than "application/graphql-response+json".
   // This library doesn't know what to do in the case that the Accept header contains application/json but does not contain application/graphql-response+json.
   if (!includeMediaType(mediaRange, GQL_RESPONSE_MEDIA_TYPE)) {
     // @spec: S73, S74
@@ -195,6 +196,7 @@ export const buildGqlRequestFromPost = async (
 
   const gqlRequest = convertToGqlRequest(body);
   if (gqlRequest === null) {
+    // @spec: S86, S87, S88, S117
     return buildSimpleGqlRequestErrorResponse();
   }
   return { data: gqlRequest };
@@ -225,6 +227,8 @@ export const validateGetRequestHeaders = (
   // @spec: S16, S37, S38, S39, S76, S77, S78
   // Due to S39, `application/json` is no longer required after the watershed,
   // so this library does not check whether the Accept header includes `application/json`.
+  // S72 states that the server MUST respect the client's Accept header,
+  // but this library does not support media types other than "application/graphql-response+json".
   // TODO: S75
   // This library doesn't know what to do in the case that the Accept header contains application/json but does not contain application/graphql-response+json.
   if (!includeMediaType(acceptableMediaRange, GQL_RESPONSE_MEDIA_TYPE)) {
@@ -301,6 +305,7 @@ export const buildGqlRequestFromGet = (
     extensions,
   });
   if (gqlRequest === null) {
+    // @spec: S86, S87, S88, S117
     return buildSimpleGqlRequestErrorResponse();
   }
 

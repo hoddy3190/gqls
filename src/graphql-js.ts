@@ -39,6 +39,9 @@ export type GraphqlJsArgs = Omit<
 
 export const makeGqlImpl = (args: GraphqlJsArgs): GqlImpl<DataType> => {
   return async (gqlRequest) => {
+    // @spec: S81, S82, S83, S84, S85
+    // Validation rules: https://github.com/graphql/graphql-js/blob/9a91e338101b94fb1cc5669dd00e1ba15e0f21b3/src/validation/validate.ts#L41
+    // Depth limit is included in them, but complexity limit is not.
     const result = await graphql({
       ...args,
       source: gqlRequest.query,
