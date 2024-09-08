@@ -140,7 +140,7 @@ export const validatePostRequestHeaders = (
   if (parsedContentType === undefined) {
     return buildSimpleGqlRequestErrorResponse();
   }
-  // @spec: S54, S60
+  // @spec: S17, S19, S54, S60
   if (parsedContentType.mediaType !== POST_REQ_MEDIA_TYPE) {
     return buildSimpleGqlRequestErrorResponse();
   }
@@ -322,7 +322,7 @@ export const buildHttpResponse = <T>(
   const response = new Response(JSON.stringify(gqlResponse), {
     status: httpResult.statusCode,
     headers: {
-      // @spec: S71
+      // @spec: S16, S20, S71
       CONTENT_TYPE_KEY: GQL_RESPONSE_CONTENT_TYPE,
     },
   });

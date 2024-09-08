@@ -11,7 +11,7 @@ export interface GqlRequest {
   // @spec: S28
   extensions: Record<string, unknown>;
   // @spec: S29
-  // not include the GraphQL schema and “initial value”
+  // GraphQL-over-HTTP request doesn't include the GraphQL schema and “initial value”
 }
 
 export interface Location {
