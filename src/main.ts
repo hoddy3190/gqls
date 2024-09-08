@@ -53,48 +53,68 @@ const isNonEmptyStringRecord = (o: unknown): o is Record<string, unknown> => {
   return isStringRecord(o) && Object.keys(o).length > 0;
 };
 
-const isGqlRequest = (data: unknown): data is GqlRequest => {
-  if (!isStringRecord(data)) return false;
+const convertToGqlRequest = (data: unknown): GqlRequest | null => {
+  if (!isStringRecord(data)) return null;
 
   const len = Object.keys(data).length;
   // Since the key "query" is required, the length must be at least 1.
   // The keys "operationName", "variables", and "extensions" are optional, so the length can be up to 4.
-  if (!(len >= 1 && len <= 4)) return false;
+  if (!(len >= 1 && len <= 4)) return null;
 
   let keyCount = 0;
 
   // @spec: S25, S32, S62
-  if (!("query" in data)) return false;
+  if (!("query" in data)) return null;
   keyCount++;
   // @spec: S25, S32, S34, S62
-  if (typeof data["query"] !== "string") return false;
+  if (typeof data["query"] !== "string") return null;
 
+  let operationName: GqlRequest["operationName"] = null;
   // @spec: S26, S63
   if ("operationName" in data) {
     keyCount++;
-    // @spec: S32
-    if (typeof data["operationName"] !== "string") return false;
+    // @spec: S33
+    if (data["operationName"] !== null) {
+      // @spec: S32
+      if (typeof data["operationName"] !== "string") return null;
+      operationName = data["operationName"];
+    }
   }
 
+  let variables: GqlRequest["variables"] = null;
   // @spec: S27, S64
   if ("variables" in data) {
     keyCount++;
-    // @spec: S32
-    if (!isStringRecord(data["variables"])) return false;
+    // @spec: S33
+    if (data["variables"] !== null) {
+      // @spec: S32
+      if (!isStringRecord(data["variables"])) return null;
+      variables = data["variables"];
+    }
   }
 
+  let extensions: GqlRequest["extensions"] = null;
   // @spec: S28, S65
   if ("extensions" in data) {
     keyCount++;
-    // @spec: S32
-    if (!isStringRecord(data["extensions"])) return false;
+    // @spec: S33
+    if (data["extensions"] !== null) {
+      // @spec: S32
+      if (!isStringRecord(data["extensions"])) return null;
+      extensions = data["extensions"];
+    }
   }
 
   // @spec: S66
   // Other keys are not allowed.
-  if (keyCount !== len) return false;
+  if (keyCount !== len) return null;
 
-  return true;
+  return {
+    query: data["query"],
+    operationName,
+    variables,
+    extensions,
+  };
 };
 
 export const validatePostRequestHeaders = (
@@ -173,10 +193,11 @@ export const buildGqlRequestFromPost = async (
     return buildSimpleGqlRequestErrorResponse();
   }
 
-  if (!isGqlRequest(body)) {
+  const gqlRequest = convertToGqlRequest(body);
+  if (gqlRequest === null) {
     return buildSimpleGqlRequestErrorResponse();
   }
-  return { data: body };
+  return { data: gqlRequest };
 };
 
 export const validateGetRequestHeaders = (
@@ -273,8 +294,13 @@ export const buildGqlRequestFromGet = (
     }
   }
 
-  const gqlRequest = { query, operationName, variables, extensions };
-  if (!isGqlRequest(gqlRequest)) {
+  const gqlRequest = convertToGqlRequest({
+    query,
+    operationName,
+    variables,
+    extensions,
+  });
+  if (gqlRequest === null) {
     return buildSimpleGqlRequestErrorResponse();
   }
 
