@@ -239,30 +239,27 @@ export const validateGetRequestHeaders = (
   return null;
 };
 
-export const buildGqlRequestFromGet = (
-  httpRequest: Request
+export const buildGqlRequestFromUrl = (
+  url: string
 ): MaybeGqlRequestError<GqlRequest> => {
-  assert(httpRequest.method === "GET");
-
-  const validationResult = validateGetRequestHeaders(httpRequest.headers);
-  if (validationResult !== null) {
-    return buildSimpleGqlRequestErrorResponse();
-  }
-
   // @spec: S42
   // URL class is implemented by WHATWG URL Standard.
   // https://nodejs.org/api/url.html#the-whatwg-url-api
-  if (!URL.canParse(httpRequest.url)) {
+  if (!URL.canParse(url)) {
     return buildSimpleGqlRequestErrorResponse();
   }
   // @spec: S47
-  const searchParams = new URL(httpRequest.url).searchParams;
+  const searchParams = new URL(url).searchParams;
+
+  let paramNum = 0;
 
   const query = searchParams.get("query");
   // @spec: S43
   if (query === null) {
     return buildSimpleGqlRequestErrorResponse();
   }
+  paramNum++;
+
   // @spec: S51
   // The logic for checking if the value of "query" indicates a mutation is based on startsWith("query").
   // As for "operationName", there is no specific handling because of no logic idea.
@@ -272,13 +269,17 @@ export const buildGqlRequestFromGet = (
 
   // @spec: S44, S46
   const operationNameStr = searchParams.get("operationName");
+  if (operationNameStr !== null) {
+    paramNum++;
+  }
   // @spec: S48
   // "operationName is null" is equivalent to omitting the operationName parameter.
   const operationName = operationNameStr !== "" ? operationNameStr : null;
 
   let variables = {};
   const variablesStr = searchParams.get("variables");
-  if (variablesStr) {
+  if (variablesStr !== null) {
+    paramNum++;
     try {
       // @spec: S45
       variables = JSON.parse(variablesStr);
@@ -289,7 +290,8 @@ export const buildGqlRequestFromGet = (
 
   let extensions = {};
   const extensionsStr = searchParams.get("extensions");
-  if (extensionsStr) {
+  if (extensionsStr !== null) {
+    paramNum++;
     try {
       // @spec: S45
       extensions = JSON.parse(extensionsStr);
@@ -298,20 +300,36 @@ export const buildGqlRequestFromGet = (
     }
   }
 
-  const gqlRequest = convertToGqlRequest({
-    query,
-    operationName,
-    variables,
-    extensions,
-  });
-  if (gqlRequest === null) {
-    // @spec: S86, S87, S88, S117
+  if ([...searchParams.keys()].length !== paramNum) {
     return buildSimpleGqlRequestErrorResponse();
   }
 
   return {
-    data: gqlRequest,
+    data: {
+      query,
+      operationName,
+      variables,
+      extensions,
+    },
   };
+};
+
+export const buildGqlRequestFromGet = (
+  httpRequest: Request
+): MaybeGqlRequestError<GqlRequest> => {
+  assert(httpRequest.method === "GET");
+
+  const headerValidationResult = validateGetRequestHeaders(httpRequest.headers);
+  if (headerValidationResult !== null) {
+    // @spec: S86, S87, S88, S117
+    return buildSimpleGqlRequestErrorResponse();
+  }
+  const maybeGqlRequestError = buildGqlRequestFromUrl(httpRequest.url);
+  if (isGqlRequestErrorResponseAndHttpStatus(maybeGqlRequestError)) {
+    // @spec: S86, S87, S88, S117
+    return maybeGqlRequestError;
+  }
+  return maybeGqlRequestError;
 };
 
 export const buildGqlRequest = async (
