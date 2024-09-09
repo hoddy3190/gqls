@@ -81,7 +81,7 @@ const convertToGqlRequest = (data: unknown): GqlRequest | null => {
     }
   }
 
-  let variables: GqlRequest["variables"] = null;
+  let variables: GqlRequest["variables"] = {};
   // @spec: S27, S64
   if ("variables" in data) {
     keyCount++;
@@ -93,7 +93,7 @@ const convertToGqlRequest = (data: unknown): GqlRequest | null => {
     }
   }
 
-  let extensions: GqlRequest["extensions"] = null;
+  let extensions: GqlRequest["extensions"] = {};
   // @spec: S28, S65
   if ("extensions" in data) {
     keyCount++;
