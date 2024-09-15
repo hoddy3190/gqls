@@ -2,7 +2,7 @@ import assert from "assert";
 import { ACCEPT_KEY, GQL_RESPONSE_MEDIA_TYPE } from "./constant.js";
 import { parseMediaRange, includeMediaType } from "./media-type.js";
 import {
-  GqlRequestErrorResponseAndHttpStatus,
+  GqlRequestErrorResponseWithHttpStatus,
   Result,
   GqlRequest,
   makeFailure,
@@ -12,7 +12,7 @@ import { buildSimpleGqlRequestErrorResponse } from "./util.js";
 
 export const validateGetRequestHeaders = (
   headers: Request["headers"]
-): GqlRequestErrorResponseAndHttpStatus | null => {
+): GqlRequestErrorResponseWithHttpStatus | null => {
   // @spec: S35, S36, S79
   // While S79 states that a request without an Accept header SHOULD be treated
   // as if it included `Accept: application/graphql-response+json`,
@@ -49,7 +49,7 @@ export const validateGetRequestHeaders = (
 
 export const buildGqlRequestFromUrl = (
   url: string
-): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
+): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   // @spec: S42
   // URL class is implemented by WHATWG URL Standard.
   // https://nodejs.org/api/url.html#the-whatwg-url-api
@@ -122,7 +122,7 @@ export const buildGqlRequestFromUrl = (
 
 export const buildGqlRequestFromGet = (
   httpRequest: Request
-): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
+): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   assert(httpRequest.method === "GET");
 
   const headerValidationResult = validateGetRequestHeaders(httpRequest.headers);

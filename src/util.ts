@@ -1,11 +1,11 @@
 import { DEFAULT_ERROR_STATUS_CODE, getStatusText } from "./constant.js";
-import { StatusCode, GqlRequestErrorResponseAndHttpStatus } from "./type.js";
+import { StatusCode, GqlRequestErrorResponseWithHttpStatus } from "./type.js";
 
 export const buildSimpleGqlRequestErrorResponse = (
   statusCode: StatusCode = DEFAULT_ERROR_STATUS_CODE
-): GqlRequestErrorResponseAndHttpStatus => {
+): GqlRequestErrorResponseWithHttpStatus => {
   return {
-    httpResult: { statusCode, message: null },
+    httpStatus: { statusCode },
     gqlResponse: {
       errors: [
         {

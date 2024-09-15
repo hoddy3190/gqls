@@ -66,22 +66,21 @@ export const isGqlRequestError = <T>(
   return false;
 };
 
-export interface HttpResult {
+export interface HttpStatus {
   statusCode: number;
-  message: string | null;
 }
 
-export type GqlResponseAndHttpStatus<T> = {
+export type GqlResponseWithHttpStatus<T> = {
   gqlResponse: GqlResponse<T>;
-  httpResult: HttpResult;
+  httpStatus: HttpStatus;
 };
 
-export type GqlImpl<T> = (gqlRequest: GqlRequest) => Promise<GqlResponse<T>>;
-
-export interface GqlRequestErrorResponseAndHttpStatus {
+export interface GqlRequestErrorResponseWithHttpStatus {
   gqlResponse: GqlRequestError;
-  httpResult: HttpResult;
+  httpStatus: HttpStatus;
 }
+
+export type GqlImpl<T> = (gqlRequest: GqlRequest) => Promise<GqlResponse<T>>;
 
 export type Success<T> = {
   success: true;

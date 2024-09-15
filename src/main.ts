@@ -4,9 +4,9 @@ import { buildGqlRequestFromPost } from "./post.js";
 import {
   GqlImpl,
   GqlRequest,
-  GqlRequestErrorResponseAndHttpStatus,
+  GqlRequestErrorResponseWithHttpStatus,
   GqlResponse,
-  GqlResponseAndHttpStatus,
+  GqlResponseWithHttpStatus,
   isGqlSuccessOrPartialSuccess,
   makeFailure,
   Result,
@@ -15,7 +15,7 @@ import { buildSimpleGqlRequestErrorResponse } from "./util.js";
 
 export const buildGqlRequest = async (
   httpRequest: Request
-): Promise<Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus>> => {
+): Promise<Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus>> => {
   if (httpRequest.method === "POST") {
     return await buildGqlRequestFromPost(httpRequest);
   } else if (httpRequest.method === "GET") {
@@ -28,29 +28,29 @@ export const buildGqlRequest = async (
 
 export const buildGqlOverHttpResult = <T>(
   gqlResponse: GqlResponse<T>
-): GqlResponseAndHttpStatus<T> => {
+): GqlResponseWithHttpStatus<T> => {
   if (isGqlSuccessOrPartialSuccess(gqlResponse)) {
     return {
       // @spec: S111, S112, S113, S114
-      httpResult: { statusCode: 200, message: null },
+      httpStatus: { statusCode: 200 },
       gqlResponse,
     };
   }
   return {
     // @spec: S115, S116, S117
     // TODO: 5xx
-    httpResult: { statusCode: 400, message: null },
+    httpStatus: { statusCode: 400 },
     gqlResponse,
   };
 };
 
 export const buildHttpResponse = <T>(
-  gqlResponseAndHttpStatus: GqlResponseAndHttpStatus<T>
+  gqlResponseWithHttpStatus: GqlResponseWithHttpStatus<T>
 ): Response => {
-  const { gqlResponse, httpResult } = gqlResponseAndHttpStatus;
+  const { gqlResponse, httpStatus } = gqlResponseWithHttpStatus;
   // @spec: S70
   const response = new Response(JSON.stringify(gqlResponse), {
-    status: httpResult.statusCode,
+    status: httpStatus.statusCode,
     headers: {
       // @spec: S16, S20, S71
       CONTENT_TYPE_KEY: GQL_RESPONSE_CONTENT_TYPE,
@@ -67,7 +67,7 @@ export const handle = async <T>(
   // @spec: S8
   // gqlImpl is typically created using a GraphQL schema and resolvers.
   gqlImpl: GqlImpl<T>
-): Promise<GqlResponseAndHttpStatus<T>> => {
+): Promise<GqlResponseWithHttpStatus<T>> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
   if (!gqlRequest.success) {
     return gqlRequest.error;

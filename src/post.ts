@@ -14,7 +14,7 @@ import {
 import {
   Result,
   GqlRequest,
-  GqlRequestErrorResponseAndHttpStatus,
+  GqlRequestErrorResponseWithHttpStatus,
   makeFailure,
   makeSuccess,
 } from "./type.js";
@@ -26,7 +26,7 @@ const isStringRecord = (o: unknown): o is Record<string, unknown> => {
 
 export const buildGqlRequestFromBody = (
   body: unknown
-): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
+): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   if (!isStringRecord(body))
     return makeFailure(buildSimpleGqlRequestErrorResponse());
 
@@ -98,7 +98,7 @@ export const buildGqlRequestFromBody = (
 
 export const validatePostRequestHeaders = (
   headers: Request["headers"]
-): GqlRequestErrorResponseAndHttpStatus | null => {
+): GqlRequestErrorResponseWithHttpStatus | null => {
   // @spec: S35, S36, S79
   // While S79 states that a request without an Accept header SHOULD be treated
   // as if it included `Accept: application/graphql-response+json`,
@@ -157,7 +157,7 @@ export const validatePostRequestHeaders = (
 
 export const buildGqlRequestFromPost = async (
   httpRequest: Request
-): Promise<Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus>> => {
+): Promise<Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus>> => {
   assert(httpRequest.method === "POST");
 
   const validationResult = validatePostRequestHeaders(httpRequest.headers);
