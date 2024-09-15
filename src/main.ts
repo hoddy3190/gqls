@@ -6,7 +6,6 @@ import {
   GqlRequest,
   GqlRequestErrorResponseWithHttpStatus,
   GqlResponse,
-  GqlResponseWithHttpStatus,
   isGqlSuccessOrPartialSuccess,
   makeFailure,
   Result,
@@ -26,37 +25,18 @@ export const buildGqlRequest = async (
   return makeFailure(buildSimpleGqlRequestErrorResponse(405));
 };
 
-export const buildGqlOverHttpResult = <T>(
-  gqlResponse: GqlResponse<T>
-): GqlResponseWithHttpStatus<T> => {
-  if (isGqlSuccessOrPartialSuccess(gqlResponse)) {
-    return {
-      // @spec: S111, S112, S113, S114
-      httpStatus: { statusCode: 200 },
-      gqlResponse,
-    };
-  }
-  return {
-    // @spec: S115, S116, S117
-    // TODO: 5xx
-    httpStatus: { statusCode: 400 },
-    gqlResponse,
-  };
-};
-
 export const buildHttpResponse = <T>(
-  gqlResponseWithHttpStatus: GqlResponseWithHttpStatus<T>
+  gqlResponse: GqlResponse<T>,
+  httpStatusCode: number
 ): Response => {
-  const { gqlResponse, httpStatus } = gqlResponseWithHttpStatus;
   // @spec: S70
-  const response = new Response(JSON.stringify(gqlResponse), {
-    status: httpStatus.statusCode,
+  return new Response(JSON.stringify(gqlResponse), {
+    status: httpStatusCode,
     headers: {
       // @spec: S16, S20, S71
       CONTENT_TYPE_KEY: GQL_RESPONSE_CONTENT_TYPE,
     },
   });
-  return response;
 };
 
 // @spec: S68
@@ -67,11 +47,19 @@ export const handle = async <T>(
   // @spec: S8
   // gqlImpl is typically created using a GraphQL schema and resolvers.
   gqlImpl: GqlImpl<T>
-): Promise<GqlResponseWithHttpStatus<T>> => {
+): Promise<Response> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
   if (!gqlRequest.success) {
-    return gqlRequest.error;
+    return buildHttpResponse(
+      gqlRequest.error.gqlResponse,
+      gqlRequest.error.httpStatus.statusCode
+    );
   }
   const gqlResponse = await gqlImpl(gqlRequest.data);
-  return buildGqlOverHttpResult(gqlResponse);
+  const statusCode = isGqlSuccessOrPartialSuccess(gqlResponse)
+    ? // @spec: S16, S20, S71
+      200
+    : // @spec: S115, S116, S117
+      400;
+  return buildHttpResponse(gqlResponse, statusCode);
 };
