@@ -4,7 +4,7 @@ import {
   GQL_RESPONSE_MEDIA_TYPE,
   CONTENT_TYPE_KEY,
   DEFAULT_ENCODING,
-  POST_REQ_MEDIA_TYPE,
+  POST_REQUEST_CONTENT_TYPE,
 } from "./constant.js";
 import {
   parseMediaRange,
@@ -141,7 +141,7 @@ export const validatePostRequestHeaders = (
     return buildSimpleGqlRequestErrorResponse();
   }
   // @spec: S17, S19, S54, S60
-  if (parsedContentType.mediaType !== POST_REQ_MEDIA_TYPE) {
+  if (parsedContentType.mediaType !== POST_REQUEST_CONTENT_TYPE) {
     return buildSimpleGqlRequestErrorResponse();
   }
   const charset = parsedContentType.parameters["charset"];
