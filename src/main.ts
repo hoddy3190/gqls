@@ -54,68 +54,76 @@ const isNonEmptyStringRecord = (o: unknown): o is Record<string, unknown> => {
   return isStringRecord(o) && Object.keys(o).length > 0;
 };
 
-const convertToGqlRequest = (data: unknown): GqlRequest | null => {
-  if (!isStringRecord(data)) return null;
+export const buildGqlRequestFromBody = (
+  body: unknown
+): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
+  if (!isStringRecord(body))
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
 
-  const len = Object.keys(data).length;
+  const len = Object.keys(body).length;
   // Since the key "query" is required, the length must be at least 1.
   // The keys "operationName", "variables", and "extensions" are optional, so the length can be up to 4.
-  if (!(len >= 1 && len <= 4)) return null;
+  if (!(len >= 1 && len <= 4))
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
 
   let keyCount = 0;
 
   // @spec: S25, S32, S62
-  if (!("query" in data)) return null;
+  if (!("query" in body)) return makeFailure(buildSimpleGqlRequestErrorResponse());
   keyCount++;
   // @spec: S25, S32, S34, S62
-  if (typeof data["query"] !== "string") return null;
+  if (typeof body["query"] !== "string")
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
 
   let operationName: GqlRequest["operationName"] = null;
   // @spec: S26, S63
-  if ("operationName" in data) {
+  if ("operationName" in body) {
     keyCount++;
     // @spec: S33
-    if (data["operationName"] !== null) {
+    if (body["operationName"] !== null) {
       // @spec: S32
-      if (typeof data["operationName"] !== "string") return null;
-      operationName = data["operationName"];
+      if (typeof body["operationName"] !== "string")
+        return makeFailure(buildSimpleGqlRequestErrorResponse());
+      operationName = body["operationName"];
     }
   }
 
   let variables: GqlRequest["variables"] = {};
   // @spec: S27, S64
-  if ("variables" in data) {
+  if ("variables" in body) {
     keyCount++;
     // @spec: S33
-    if (data["variables"] !== null) {
+    if (body["variables"] !== null) {
       // @spec: S32
-      if (!isStringRecord(data["variables"])) return null;
-      variables = data["variables"];
+      if (!isStringRecord(body["variables"]))
+        return makeFailure(buildSimpleGqlRequestErrorResponse());
+      variables = body["variables"];
     }
   }
 
   let extensions: GqlRequest["extensions"] = {};
   // @spec: S28, S65
-  if ("extensions" in data) {
+  if ("extensions" in body) {
     keyCount++;
     // @spec: S33
-    if (data["extensions"] !== null) {
+    if (body["extensions"] !== null) {
       // @spec: S32
-      if (!isStringRecord(data["extensions"])) return null;
-      extensions = data["extensions"];
+      if (!isStringRecord(body["extensions"]))
+        return makeFailure(buildSimpleGqlRequestErrorResponse());
+      extensions = body["extensions"];
     }
   }
 
   // @spec: S66
   // Other keys are not allowed.
-  if (keyCount !== len) return null;
+  if (keyCount !== len) return makeFailure(buildSimpleGqlRequestErrorResponse());
 
-  return {
-    query: data["query"],
+  return makeSuccess({
+    query: body["query"],
     operationName,
     variables,
     extensions,
-  };
+  });
 };
 
 export const validatePostRequestHeaders = (
@@ -196,12 +204,12 @@ export const buildGqlRequestFromPost = async (
     return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
 
-  const gqlRequest = convertToGqlRequest(body);
-  if (gqlRequest === null) {
+  const gqlRequest = buildGqlRequestFromBody(body);
+  if (!gqlRequest.success) {
     // @spec: S86, S87, S88, S117
     return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
-  return makeSuccess(gqlRequest);
+  return makeSuccess(gqlRequest.data);
 };
 
 export const validateGetRequestHeaders = (
