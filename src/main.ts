@@ -20,9 +20,10 @@ import {
   GqlRequest,
   GqlResponse,
   isGqlSuccessOrPartialSuccess,
-  MaybeGqlRequestError,
-  isGqlRequestErrorResponseAndHttpStatus,
   StatusCode,
+  Result,
+  makeFailure,
+  makeSuccess,
 } from "./type.js";
 
 const GET_REQ_MEDIA_TYPE = "application/x-www-form-urlencoded";
@@ -178,12 +179,13 @@ export const validatePostRequestHeaders = (
 
 export const buildGqlRequestFromPost = async (
   httpRequest: Request
-): Promise<MaybeGqlRequestError<GqlRequest>> => {
+): Promise<Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus>> => {
   assert(httpRequest.method === "POST");
 
   const validationResult = validatePostRequestHeaders(httpRequest.headers);
   if (validationResult !== null) {
-    return validationResult;
+    // @spec: S86, S87, S88, S117
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
 
   // @spec: S52
@@ -191,15 +193,15 @@ export const buildGqlRequestFromPost = async (
   try {
     body = await httpRequest.json();
   } catch (e) {
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
 
   const gqlRequest = convertToGqlRequest(body);
   if (gqlRequest === null) {
     // @spec: S86, S87, S88, S117
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
-  return { data: gqlRequest };
+  return makeSuccess(gqlRequest);
 };
 
 export const validateGetRequestHeaders = (
@@ -241,12 +243,12 @@ export const validateGetRequestHeaders = (
 
 export const buildGqlRequestFromUrl = (
   url: string
-): MaybeGqlRequestError<GqlRequest> => {
+): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
   // @spec: S42
   // URL class is implemented by WHATWG URL Standard.
   // https://nodejs.org/api/url.html#the-whatwg-url-api
   if (!URL.canParse(url)) {
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
   // @spec: S47
   const searchParams = new URL(url).searchParams;
@@ -256,7 +258,7 @@ export const buildGqlRequestFromUrl = (
   const query = searchParams.get("query");
   // @spec: S43
   if (query === null) {
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
   paramNum++;
 
@@ -264,7 +266,7 @@ export const buildGqlRequestFromUrl = (
   // The logic for checking if the value of "query" indicates a mutation is based on startsWith("query").
   // As for "operationName", there is no specific handling because of no logic idea.
   if (!query.startsWith("query")) {
-    return buildSimpleGqlRequestErrorResponse(405);
+    return makeFailure(buildSimpleGqlRequestErrorResponse(405));
   }
 
   // @spec: S44, S46
@@ -284,7 +286,7 @@ export const buildGqlRequestFromUrl = (
       // @spec: S45
       variables = JSON.parse(variablesStr);
     } catch (e) {
-      return buildSimpleGqlRequestErrorResponse();
+      return makeFailure(buildSimpleGqlRequestErrorResponse());
     }
   }
 
@@ -296,45 +298,38 @@ export const buildGqlRequestFromUrl = (
       // @spec: S45
       extensions = JSON.parse(extensionsStr);
     } catch (e) {
-      return buildSimpleGqlRequestErrorResponse();
+      return makeFailure(buildSimpleGqlRequestErrorResponse());
     }
   }
 
   if ([...searchParams.keys()].length !== paramNum) {
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
 
-  return {
-    data: {
-      query,
-      operationName,
-      variables,
-      extensions,
-    },
-  };
+  return makeSuccess({
+    query,
+    operationName,
+    variables,
+    extensions,
+  });
 };
 
 export const buildGqlRequestFromGet = (
   httpRequest: Request
-): MaybeGqlRequestError<GqlRequest> => {
+): Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus> => {
   assert(httpRequest.method === "GET");
 
   const headerValidationResult = validateGetRequestHeaders(httpRequest.headers);
   if (headerValidationResult !== null) {
     // @spec: S86, S87, S88, S117
-    return buildSimpleGqlRequestErrorResponse();
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
-  const maybeGqlRequestError = buildGqlRequestFromUrl(httpRequest.url);
-  if (isGqlRequestErrorResponseAndHttpStatus(maybeGqlRequestError)) {
-    // @spec: S86, S87, S88, S117
-    return maybeGqlRequestError;
-  }
-  return maybeGqlRequestError;
+  return buildGqlRequestFromUrl(httpRequest.url);
 };
 
 export const buildGqlRequest = async (
   httpRequest: Request
-): Promise<MaybeGqlRequestError<GqlRequest>> => {
+): Promise<Result<GqlRequest, GqlRequestErrorResponseAndHttpStatus>> => {
   if (httpRequest.method === "POST") {
     return await buildGqlRequestFromPost(httpRequest);
   } else if (httpRequest.method === "GET") {
@@ -342,7 +337,7 @@ export const buildGqlRequest = async (
   }
   // @spec: S23
   // In this library, the only HTTP method other than "POST" is "GET."
-  return buildSimpleGqlRequestErrorResponse(405);
+  return makeFailure(buildSimpleGqlRequestErrorResponse(405));
 };
 
 export const buildGqlOverHttpResult = <T>(
@@ -388,8 +383,8 @@ export const handle = async <T>(
   gqlImpl: GqlImpl<T>
 ): Promise<GqlResponseAndHttpStatus<T>> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
-  if (isGqlRequestErrorResponseAndHttpStatus(gqlRequest)) {
-    return gqlRequest;
+  if (!gqlRequest.success) {
+    return gqlRequest.error;
   }
   const gqlResponse = await gqlImpl(gqlRequest.data);
   return buildGqlOverHttpResult(gqlResponse);

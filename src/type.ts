@@ -78,23 +78,26 @@ export type GqlResponseAndHttpStatus<T> = {
 
 export type GqlImpl<T> = (gqlRequest: GqlRequest) => Promise<GqlResponse<T>>;
 
-type Success<T> = {
-  data: T;
-};
-export type RequestError = GqlRequestError;
-
 export interface GqlRequestErrorResponseAndHttpStatus {
   gqlResponse: GqlRequestError;
   httpResult: HttpResult;
 }
 
-export type MaybeGqlRequestError<T> =
-  | Success<T>
-  | GqlRequestErrorResponseAndHttpStatus;
-
-export const isGqlRequestErrorResponseAndHttpStatus = <T>(
-  result: MaybeGqlRequestError<T>
-): result is GqlRequestErrorResponseAndHttpStatus => {
-  if ("gqlResponse" in result || "httpResult" in result) return true;
-  return false;
+export type Success<T> = {
+  success: true;
+  data: T;
 };
+export type Failure<F> = {
+  success: false;
+  error: F;
+};
+export type Result<T, F extends {}> = Success<T> | Failure<F>;
+
+export const makeSuccess = <T>(data: T): Success<T> => ({
+  success: true,
+  data,
+});
+export const makeFailure = <F>(error: F): Failure<F> => ({
+  success: false,
+  error,
+});
