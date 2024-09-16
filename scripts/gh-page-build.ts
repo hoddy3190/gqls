@@ -1,67 +1,26 @@
 import { readFileSync } from "node:fs";
 import * as fs from "node:fs/promises";
-import { exit } from "node:process";
-const specMarkdown = require("spec-md");
+import { exec } from "node:child_process";
+import {
+  makeIgnoredSpecMap,
+  makeImpledSpecMap,
+  SPEC_FILE_PATH,
+  SpecMap,
+} from "./util.js";
 
-type SpecIgnoreData = Record<string, string>;
-type SpecIdInImpleFiles = Record<string, [string, number][]>;
+const GH_PAGE_INDEX_PATH = "docs/index.html";
+const GITHUB_URL = JSON.parse(readFileSync("./package.json", "utf-8")).homepage;
 
-// JSON ファイルを読み込む関数
-function readJsonFile(filePath: string): SpecIgnoreData {
-  const fileContent = readFileSync(filePath, "utf-8");
-  const jsonData: SpecIgnoreData = JSON.parse(fileContent);
-  return jsonData;
-}
-
-async function extractLines(
+async function appendReferenceToSpecDocument(
   filePath: string,
-  specIdInImplFiles: SpecIdInImpleFiles
-): Promise<SpecIdInImpleFiles> {
-  const startRegex = /^\s*\/\/\s*\@spec:/;
-  //   const regex = /\/\/\s*\@spec:\s*(S\d+)(\s*,\s*(S\d+))*$/;
-  const specIdRegex = /S\d+/g;
-
-  const file = await fs.open(filePath);
-
-  let lineNum = 1;
-
-  for await (const line of file.readLines()) {
-    if (!startRegex.test(line)) {
-      continue;
-    }
-    const result = line.match(specIdRegex);
-    if (!result) {
-      console.log(`${filePath}, ${lineNum} | result is null`);
-      continue;
-    }
-    for (let i = 0; i < result.length; i++) {
-      const specId = result[i];
-      if (specId === undefined) {
-        console.log(`${filePath}, ${lineNum} | specId is undefined`);
-        continue;
-      }
-      if (!specIdInImplFiles[specId]) {
-        specIdInImplFiles[specId] = [];
-      }
-      specIdInImplFiles[specId].push([filePath, lineNum]);
-    }
-    lineNum++;
-  }
-
-  return specIdInImplFiles;
-}
-
-async function writeSpecDocument(
-  filePath: string,
-  specIgnoreData: SpecIgnoreData,
-  specIdInImplFiles: SpecIdInImpleFiles
-): error | null {
+  impledSpecMap: SpecMap,
+  ignoredSpecMap: SpecMap
+): Promise<string[]> {
   const file = await fs.open(filePath);
 
   const pattern = /^\*\*(S\d+)\*\*$/;
 
-  let writeLines = [];
-  let notYetImplemented = [];
+  let writeLines: string[] = [];
 
   for await (const line of file.readLines()) {
     const match = line.match(pattern);
@@ -71,52 +30,44 @@ async function writeSpecDocument(
     }
     const specId = match[1];
     if (specId === undefined) {
-      return new Error(`specId is undefined: ${line}`);
+      throw new Error(`specId is undefined: ${line}`);
     }
-    if (specIgnoreData[specId]) {
-      writeLines.push(line + " | ignored");
-    } else if (specIdInImplFiles[specId]) {
-      const filePathAndLineNumList = specIdInImplFiles[specId].map<string>(
+
+    if (impledSpecMap[specId] !== undefined) {
+      const filePathAndLineNumList = impledSpecMap[specId].map<string>(
         ([filePath, lineNum]) => {
-          return `${filePath}:${lineNum}`;
+          return `[${filePath}:${lineNum}](${GITHUB_URL}/blob/main/${filePath}#L${lineNum})`;
         }
       );
+
       writeLines.push(
         line + " | implemented at " + filePathAndLineNumList.join(", ")
       );
+    } else if (ignoredSpecMap[specId] !== undefined) {
+      const [filePath, lineNum] = ignoredSpecMap[specId][0]!;
+      writeLines.push(
+        `${line} | ignored at [${filePath}:${lineNum}](${GITHUB_URL}/blob/main/${filePath}#L${lineNum})`
+      );
     } else {
-      writeLines.push(line + " | not yet implemented");
-      notYetImplemented.push(specId);
+      throw new Error(`specId: ${specId} is not implemented yet`);
     }
   }
 
-  if (notYetImplemented.length > 0) {
-    console.log("Not yet implemented: ", notYetImplemented);
-    // exit(1);
-  }
-
-  const writeFilePath =
-    "/Users/hodaka.suzuki/ghq/github.com/hoddy3190/gqls/spec/write.md";
-  fs.writeFile(writeFilePath, writeLines.join("\n"));
+  return writeLines;
 }
 
 async function main(): Promise<void> {
-  const specIgnoreFilePath =
-    "/Users/hodaka.suzuki/ghq/github.com/hoddy3190/gqls/spec/spec-ignore.json";
-  const specIgnoreData = readJsonFile(specIgnoreFilePath);
-  console.log(specIgnoreData);
-
-  let specIdInImplFiles: Record<string, [string, number][]> = {};
-  for await (const entry of fs.glob("src/**/*.ts", {
-    cwd: "/Users/hodaka.suzuki/ghq/github.com/hoddy3190/gqls/",
-  })) {
-    specIdInImplFiles = await extractLines(entry, specIdInImplFiles);
-  }
-  console.log(specIdInImplFiles);
-
-  const specPath =
-    "/Users/hodaka.suzuki/ghq/github.com/hoddy3190/gqls/doc/GraphQLOverHttp_with_id.md";
-  writeSpecDocument(specPath, specIgnoreData, specIdInImplFiles);
+  const impledSpecIdSet = await makeImpledSpecMap();
+  const ignoredSpecIdSet = await makeIgnoredSpecMap();
+  const lines = await appendReferenceToSpecDocument(
+    SPEC_FILE_PATH,
+    impledSpecIdSet,
+    ignoredSpecIdSet
+  );
+  fs.writeFile("spec/tmp.md", lines.join("\n"));
+  exec(`npx spec-md spec/tmp.md > ${GH_PAGE_INDEX_PATH}`, () => {
+    exec("rm spec/tmp.md");
+  });
 }
 
 main().catch((error) => {
