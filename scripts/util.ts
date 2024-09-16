@@ -2,9 +2,10 @@ import * as fs from "node:fs/promises";
 
 export type SpecMap = Record<string, [string, number][]>;
 
-export const SPEC_FILE_PATH = "spec/GraphQLOverHttp_with_id.md";
-export const IMPL_FILES_PATTERN = "{src,tests}/**/*.ts";
-export const SPEC_IGNORE_FILE_PATH = "spec/spec-ignore.json";
+const SPEC_FILE_PATH = "spec/GraphQLOverHttp_with_id.md";
+const IMPL_FILES_PATTERN = "{src,tests}/**/*.ts";
+const IGNORE_IMPL_FILE = "src/graphql-js.ts";
+const SPEC_IGNORE_FILE_PATH = "spec/spec-ignore.json";
 
 export async function extractSpecIds(
   filePath: string,
@@ -41,6 +42,7 @@ export async function makeSpecMap(): Promise<SpecMap> {
 export async function makeImpledSpecMap(): Promise<SpecMap> {
   let impledSpecMap: SpecMap = {};
   for await (const entry of fs.glob(IMPL_FILES_PATTERN)) {
+    if (entry.includes(IGNORE_IMPL_FILE)) continue;
     impledSpecMap = await extractSpecIds(
       entry,
       impledSpecMap,
