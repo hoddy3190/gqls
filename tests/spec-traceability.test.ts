@@ -47,7 +47,7 @@ async function makeImpledSpecMap(): Promise<SpecMap> {
     impledSpecMap = await extractSpecIds(
       entry,
       impledSpecMap,
-      /^\s*\/\/\s*\@spec:/,
+      /^.*\/\/\s*\@spec:/,
       /S\d+/g
     );
   }
