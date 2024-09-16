@@ -35,7 +35,7 @@ export async function extractSpecIds(
 }
 
 export async function makeSpecMap(): Promise<SpecMap> {
-  return await extractSpecIds(SPEC_FILE_PATH, {}, /^\*\*/);
+  return await extractSpecIds(SPEC_FILE_PATH, {}, /^\*\*S/);
 }
 
 export async function makeImpledSpecMap(): Promise<SpecMap> {
