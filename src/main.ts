@@ -57,7 +57,7 @@ export const handle = async <T>(
   }
   const gqlResponse = await gqlImpl(gqlRequest.data);
   const statusCode = isGqlSuccessOrPartialSuccess(gqlResponse)
-    ? // @spec: S16, S20, S71
+    ? // @spec: S111, S112, S113, S114, S126, S127
       200
     : // @spec: S115, S116, S117
       400;

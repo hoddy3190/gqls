@@ -17,6 +17,8 @@
     "S21" : "Meta information (the description of the specification)",
     "S40" : "Client specification is out of this library range.",
     "S41" : "Client specification is out of this library range.",
+    "S50" : "TODO",
+    "S55" : "TODO",
     "S59" : "Client specification is out of this library range.",
     "S69" : "No idea how to check if the server complies with RFC7231.",
     "S75" : "Currently, this library is not going to respond using `application/json` because maintaining compatibility brings complexity.",
@@ -49,5 +51,6 @@
     "S109": "This library does not respond using application/json.",
     "S110": "Meta information (the description of the specification)",
     "S118": "Authentication is out of this library range",
+    "S119": "Meta information (the description of the specification)",
     "S128": "Client specification is out of this library range."
 }
