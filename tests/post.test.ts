@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { suite, test } from "node:test";
 import {
   buildGqlRequestFromBody,
+  buildGqlRequestFromPost,
   validatePostRequestHeaders,
 } from "../src/post.js";
 
@@ -33,6 +34,7 @@ const HEADER_TEST_CASES = [
     exp: 400,
   },
   {
+    // @spec: S67
     header: {
       accept: "application/graphql-response+json",
       "Content-Type": "application/json",
@@ -99,6 +101,36 @@ suite("validatePostRequestHeaders", () => {
 
 suite("buildGqlRequestFromBody", () => {
   const urlTestCases = [
+    {
+      // @spec: S67
+      body: {
+        query: "query ($id: ID!) {\n  user(id: $id) {\n    name\n  }\n}",
+        variables: { id: "QVBJcy5ndXJ1" },
+      },
+      exp: "success",
+    },
+    {
+      // @spec: S121
+      body: {
+        qeury: "{__typename}",
+      },
+      exp: 400,
+    },
+    {
+      // @spec: S121
+      body: {
+        query: "query Q ($i:Int!) { q(i: $i) }",
+        variables: [7],
+      },
+      exp: 400,
+    },
+    {
+      // @spec: S122
+      body: {
+        query: "{",
+      },
+      exp: "success",
+    },
     {
       body: {
         query: QUERY,
@@ -206,4 +238,33 @@ suite("buildGqlRequestFromBody", () => {
       assert.strictEqual(act, exp);
     });
   }
+});
+
+// @spec: S120
+test("buildGqlRequestFromPost: body is NONSENSE", async () => {
+  const request = new Request("http://example.com/graphql", {
+    method: "POST",
+    headers: {
+      accept: "application/graphql-response+json",
+      "Content-Type": "application/json",
+    },
+  });
+  const act = await buildGqlRequestFromPost(request);
+  assert.strictEqual(act.success, false);
+  assert.strictEqual(act.error.httpStatus.statusCode, 400);
+});
+
+// @spec: S120
+test("buildGqlRequestFromPost: invalid JSON", async () => {
+  const request = new Request("http://example.com/graphql", {
+    method: "POST",
+    headers: {
+      accept: "application/graphql-response+json",
+      "Content-Type": "application/json",
+    },
+    body: '{"query"',
+  });
+  const act = await buildGqlRequestFromPost(request);
+  assert.strictEqual(act.success, false);
+  assert.strictEqual(act.error.httpStatus.statusCode, 400);
 });
