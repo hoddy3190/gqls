@@ -1,5 +1,4 @@
 import { test, TestContext } from "node:test";
-
 import { parseMediaRange } from "../src/media-type.js";
 
 test("[1] mediaRange", (t: TestContext) => {
@@ -39,8 +38,8 @@ test("[7] mediaRange", (t: TestContext) => {
 
 test("[8] mediaRange", (t: TestContext) => {
   const mediaRange = parseMediaRange("application/*; a=b;c=d , text/html; e=f");
-  t.assert.strictEqual(mediaRange![0]!.parameters.get("a"), "b");
-  t.assert.strictEqual(mediaRange![1]!.parameters.get("e"), "f");
+  t.assert.strictEqual(mediaRange![0]!.parameters["a"], "b");
+  t.assert.strictEqual(mediaRange![1]!.parameters["e"], "f");
 });
 
 test("[9] mediaRange", (t: TestContext) => {

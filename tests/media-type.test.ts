@@ -64,12 +64,9 @@ test("with parameter", (t: TestContext) => {
   const mediaType = parseMediaType("text/html  ;  a=b;   c=d");
 
   t.assert.strictEqual(mediaType!.mediaType, "text/html");
-
-  t.assert.strictEqual(mediaType!.parameters.size, 2);
-
-  t.assert.strictEqual(mediaType!.parameters.get("a"), "b");
-
-  t.assert.strictEqual(mediaType!.parameters.get("c"), "d");
+  t.assert.strictEqual(Object.keys(mediaType!.parameters).length, 2);
+  t.assert.strictEqual(mediaType!.parameters["a"], "b");
+  t.assert.strictEqual(mediaType!.parameters["c"], "d");
 });
 
 test("parameter is empty", (t: TestContext) => {
@@ -131,25 +128,25 @@ test("parameter '=' does not exist5", (t: TestContext) => {
 test("type contains duplication", (t: TestContext) => {
   const testContentType = "application/json; charset=utf-8; charset=utf-32";
   const mediaType = parseMediaType(testContentType);
-  t.assert.strictEqual(mediaType?.parameters.get("charset"), "utf-8");
+  t.assert.strictEqual(mediaType?.parameters["charset"], "utf-8");
 });
 
 test("type contains @", (t: TestContext) => {
   const testContentType = "application/yaml; charset=utf-8;   q=0.9;  xxx=p";
   const mediaType = parseMediaType(testContentType);
-  t.assert.strictEqual(mediaType?.parameters.get("charset"), "utf-8");
+  t.assert.strictEqual(mediaType?.parameters["charset"], "utf-8");
 });
 
 test("charset backslash", (t: TestContext) => {
   const testContentType = 'application/json; charset="utf\\\\-8"';
   const mediaType = parseMediaType(testContentType);
-  t.assert.strictEqual(mediaType!.parameters.get("charset"), "utf\\-8");
+  t.assert.strictEqual(mediaType!.parameters["charset"], "utf\\-8");
 });
 
 test("charset double quote empty", (t: TestContext) => {
   const testContentType = 'application/json; charset=""';
   const mediaType = parseMediaType(testContentType);
-  t.assert.strictEqual(mediaType?.parameters.get("charset"), "");
+  t.assert.strictEqual(mediaType?.parameters["charset"], "");
 });
 
 test("charseta", (t: TestContext) => {
@@ -173,62 +170,5 @@ test("now allow spaces2", (t: TestContext) => {
 test("now allow spaces2 but in quotes ok", (t: TestContext) => {
   const testContentType = 'application/json; charset=" aa"';
   const mediaType = parseMediaType(testContentType);
-  t.assert.strictEqual(mediaType!.parameters.get("charset"), " aa");
+  t.assert.strictEqual(mediaType!.parameters["charset"], " aa");
 });
-
-// test("mediaType Type", (t: TestContext) => {
-//   const headers = new Headers();
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/json; charset=utf-8");
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/yaml");
-
-//   const req = new Request("https://example.com", {
-//     headers,
-//   });
-//   const contentType = req.headers.get("CONTENT-TYPE");
-//   const mediaType = new mediaTypeType(contentType!);
-
-//   t.assert.strictEqual(mediaType.essence, "application/json");
-// });
-
-// test("mediaType Type charset", (t: TestContext) => {
-//   const headers = new Headers();
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/json; charset=utf-8");
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/yaml");
-
-//   const req = new Request("https://example.com", {
-//     headers,
-//   });
-//   const contentType = req.headers.get("CONTENT-TYPE");
-//   const mediaType = new mediaTypeType(contentType!);
-
-//   t.assert.strictEqual(mediaType.params.get("charset"), "application/json");
-// });
-
-// test("mediaType Type charset2", (t: TestContext) => {
-//   const headers = new Headers();
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/json; charset=utf-8");
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/yaml");
-
-//   const req = new Request("https://example.com", {
-//     headers,
-//   });
-//   const contentType = req.headers.get("CONTENT-TYPE");
-//   const mediaType = new mediaTypeType(contentType!);
-
-//   t.assert.strictEqual(mediaType.params.get("Charset"), undefined);
-// });
-
-// test("mediaType Type2", (t: TestContext) => {
-//   const headers = new Headers();
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/yaml");
-//   headers.append(HEADER_KEY.CONTENT_TYPE, "application/json; charset=utf-8");
-
-//   const req = new Request("https://example.com", {
-//     headers,
-//   });
-//   const contentType = req.headers.get("CONTENT-TYPE");
-//   t.assert.throws(() => {
-//     new mediaTypeType(contentType!);
-//   });
-//   mediaTypeType.parse(contentType!);
-// });
