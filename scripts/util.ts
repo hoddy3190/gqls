@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 
 export type SpecMap = Record<string, [string, number][]>;
 
-const SPEC_FILE_PATH = "spec/GraphQLOverHttp_with_id.md";
+export const SPEC_FILE_PATH = "spec/GraphQLOverHttp_with_id.md";
 const IMPL_FILES_PATTERN = "{src,tests}/**/*.ts";
 const IGNORE_IMPL_FILE = "src/graphql-js.ts";
 const SPEC_IGNORE_FILE_PATH = "spec/spec-ignore.json";
