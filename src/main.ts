@@ -25,13 +25,18 @@ export const buildGqlRequest = async (
   return makeFailure(buildSimpleGqlRequestErrorResponse(405));
 };
 
-export const buildHttpResponse = <T>(
-  gqlResponse: GqlResponse<T>,
-  httpStatusCode: number
-): Response => {
+export const decideStatusCode = <T>(gqlResponse: GqlResponse<T>): number => {
+  return isGqlSuccessOrPartialSuccess(gqlResponse)
+    ? // @spec: S111, S112, S113, S114, S126, S127
+      200
+    : // @spec: S115, S116, S117
+      400;
+};
+
+export const buildHttpResponse = <T>(gqlResponse: GqlResponse<T>): Response => {
   // @spec: S70
   return new Response(JSON.stringify(gqlResponse), {
-    status: httpStatusCode,
+    status: decideStatusCode(gqlResponse),
     headers: {
       // @spec: S16, S20, S71
       CONTENT_TYPE_KEY: GQL_RESPONSE_CONTENT_TYPE,
@@ -50,16 +55,8 @@ export const handle = async <T>(
 ): Promise<Response> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
   if (!gqlRequest.success) {
-    return buildHttpResponse(
-      gqlRequest.error.gqlResponse,
-      gqlRequest.error.httpStatus.statusCode
-    );
+    return buildHttpResponse(gqlRequest.error.gqlResponse);
   }
   const gqlResponse = await gqlImpl(gqlRequest.data);
-  const statusCode = isGqlSuccessOrPartialSuccess(gqlResponse)
-    ? // @spec: S111, S112, S113, S114, S126, S127
-      200
-    : // @spec: S115, S116, S117
-      400;
-  return buildHttpResponse(gqlResponse, statusCode);
+  return buildHttpResponse(gqlResponse);
 };
