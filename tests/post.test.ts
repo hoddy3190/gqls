@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { suite, test } from "node:test";
+import { describe, suite, test } from "node:test";
 import {
   buildGqlRequestFromBody,
   buildGqlRequestFromPost,
@@ -87,17 +87,6 @@ suite("validatePostRequestHeaders", () => {
     });
   }
 });
-
-// // @spec: S49
-// test('operationName=null represents an operation with the name "null"', () => {
-//   const testCaseSearchParam = `?${QUERY}&operationName=null`;
-//   const url = `${TEST_EP}${encodeURI(testCaseSearchParam)}`;
-//   const act = buildGqlRequestFromUrl(url);
-//   if (!act.success) {
-//     assert.fail("buildGqlRequest failed");
-//   }
-//   assert.strictEqual(act.data.operationName, "null");
-// });
 
 suite("buildGqlRequestFromBody", () => {
   const urlTestCases = [
@@ -240,31 +229,46 @@ suite("buildGqlRequestFromBody", () => {
   }
 });
 
-// @spec: S120
-test("buildGqlRequestFromPost: body is NONSENSE", async () => {
-  const request = new Request("http://example.com/graphql", {
-    method: "POST",
-    headers: {
-      accept: "application/graphql-response+json",
-      "Content-Type": "application/json",
-    },
+describe("buildGqlRequestFromPost", async () => {
+  test("well-formed request should be success", async () => {
+    const request = new Request("http://example.com/graphql", {
+      method: "POST",
+      headers: {
+        accept: "application/graphql-response+json",
+        "Content-Type": "application/json",
+      },
+      body: '{"query": "query hello {}"}',
+    });
+    const act = await buildGqlRequestFromPost(request);
+    assert.strictEqual(act.success, true);
   });
-  const act = await buildGqlRequestFromPost(request);
-  assert.strictEqual(act.success, false);
-  assert.strictEqual(act.error.httpStatus.statusCode, 400);
-});
 
-// @spec: S120
-test("buildGqlRequestFromPost: invalid JSON", async () => {
-  const request = new Request("http://example.com/graphql", {
-    method: "POST",
-    headers: {
-      accept: "application/graphql-response+json",
-      "Content-Type": "application/json",
-    },
-    body: '{"query"',
+  // @spec: S120
+  test("The request without body should be status code 400", async () => {
+    const request = new Request("http://example.com/graphql", {
+      method: "POST",
+      headers: {
+        accept: "application/graphql-response+json",
+        "Content-Type": "application/json",
+      },
+    });
+    const act = await buildGqlRequestFromPost(request);
+    assert.strictEqual(act.success, false);
+    assert.strictEqual(act.error.httpStatus.statusCode, 400);
   });
-  const act = await buildGqlRequestFromPost(request);
-  assert.strictEqual(act.success, false);
-  assert.strictEqual(act.error.httpStatus.statusCode, 400);
+
+  // @spec: S120
+  test("The request whose body is invalid JSON should be status code 400", async () => {
+    const request = new Request("http://example.com/graphql", {
+      method: "POST",
+      headers: {
+        accept: "application/graphql-response+json",
+        "Content-Type": "application/json",
+      },
+      body: '{"query"',
+    });
+    const act = await buildGqlRequestFromPost(request);
+    assert.strictEqual(act.success, false);
+    assert.strictEqual(act.error.httpStatus.statusCode, 400);
+  });
 });
