@@ -45,7 +45,7 @@ export interface GqlRequestError extends GqlExtensions {
   errors: GqlError[];
 }
 
-// @spec: 70
+// @spec: S70
 // GqlResponse type expresses "well-formed GraphQL response" which is used in GraphQL Over HTTP.
 export type GqlResponse<T> =
   | GqlSuccess<T>
