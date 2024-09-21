@@ -1,30 +1,29 @@
 {
-  "name": "graphql-http-req-handler",
-  "version": "1.0.0",
-  "description": "A minimum GraphQL server, but 実用的。graphql-http-req-handler is an implementation of graphql-over-http.",
+  "name": "@hoddy3190/graphql-http-handler",
+  "version": "0.1.0",
+  "description": "A minimal yet practical implementation of joint between HTTP and GraphQL, compliant with the 'GraphQL Over HTTP' specification.",
   "keywords": [
-    "graphql",
+    "GraphQL",
+    "GraphQL Over HTTP",
     "server",
     "http",
-    "TypeScript"
+    "TypeScript",
+    "Node.js"
   ],
-  "homepage": "https://github.com/hoddy3190/graphql-http-req-handler",
+  "homepage": "https://github.com/hoddy3190/graphql-http-handler",
   "bugs": {
-    "url": "https://github.com/hoddy3190/graphql-http-req-handler/issues"
+    "url": "https://github.com/hoddy3190/graphql-http-handler/issues"
   },
   "license": "MIT",
   "author": "Hodaka Suzuki (@hoddy3190)",
-  "funding": {
-    "type": "individual",
-    "url": "TODO:"
-  },
   "files": [
-    "TODO"
+    "./dist/src/**/*"
   ],
-  "main": "TODO",
+  "main": "./dist/src/main.js",
+  "types": "./dist/src/main.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hoddy3190/graphql-http-req-handler.git"
+    "url": "git+https://github.com/hoddy3190/graphql-http-handler.git"
   },
   "scripts": {
     "test": "npx tsc && node out/main.test.js"
