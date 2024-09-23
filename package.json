@@ -27,6 +27,7 @@
   },
   "scripts": {
     "test": "npx tsc && node out/main.test.js"
+    "lint": "eslint .",
   },
   "config": {},
   "dependencies": {
@@ -34,13 +35,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.4.0",
-    "@typescript-eslint/eslint-plugin": "^7.17.0",
-    "@typescript-eslint/parser": "^7.17.0",
-    "eslint": "^8.57.0",
+    "@eslint/js": "^9.11.0",
+    "@types/eslint__js": "^8.42.3",
+    "eslint": "^9.11.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.3.3",
     "spec-md": "^3.1.0",
     "typescript": "^5.5.4"
+    "typescript-eslint": "^8.6.0"
   },
   "engines": {
     "node": ">=20.0.0"
