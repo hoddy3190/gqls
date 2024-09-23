@@ -46,7 +46,7 @@ export async function makeImpledSpecMap(): Promise<SpecMap> {
     impledSpecMap = await extractSpecIds(
       entry,
       impledSpecMap,
-      /^.*\/\/\s*\@spec:/,
+      /^.*\/\/\s*@spec:/,
       /(S\d+)/g
     );
   }
@@ -54,5 +54,5 @@ export async function makeImpledSpecMap(): Promise<SpecMap> {
 }
 
 export async function makeIgnoredSpecMap(): Promise<SpecMap> {
-  return await extractSpecIds(SPEC_IGNORE_FILE_PATH, {}, /^\s*\"S/);
+  return await extractSpecIds(SPEC_IGNORE_FILE_PATH, {}, /^\s*"S/);
 }

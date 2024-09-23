@@ -90,7 +90,7 @@ export type Failure<F> = {
   success: false;
   error: F;
 };
-export type Result<T, F extends {}> = Success<T> | Failure<F>;
+export type Result<T, F extends object> = Success<T> | Failure<F>;
 
 export const makeSuccess = <T>(data: T): Success<T> => ({
   success: true,

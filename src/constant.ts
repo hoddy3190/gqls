@@ -20,8 +20,8 @@ export const getStatusText = (statusCode: StatusCode): string => {
     case 406:
       return "Not Acceptable";
     default:
-      const _exhaustiveCheck: never = statusCode;
-      return _exhaustiveCheck;
+      statusCode satisfies never;
+      throw new Error(`Unexpected status code: ${statusCode}`);
   }
 };
 

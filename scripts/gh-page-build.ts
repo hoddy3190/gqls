@@ -20,7 +20,7 @@ async function appendReferenceToSpecDocument(
 
   const pattern = /^\*\*(S\d+)\*\*$/;
 
-  let writeLines: string[] = [];
+  const writeLines: string[] = [];
 
   for await (const line of file.readLines()) {
     const match = line.match(pattern);

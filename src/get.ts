@@ -91,7 +91,7 @@ export const buildGqlRequestFromUrl = (
     try {
       // @spec: S45
       variables = JSON.parse(variablesStr);
-    } catch (e) {
+    } catch (_) {
       return makeFailure(buildSimpleGqlRequestErrorResponse());
     }
   }
@@ -103,7 +103,7 @@ export const buildGqlRequestFromUrl = (
     try {
       // @spec: S45
       extensions = JSON.parse(extensionsStr);
-    } catch (e) {
+    } catch (_) {
       return makeFailure(buildSimpleGqlRequestErrorResponse());
     }
   }

@@ -170,7 +170,7 @@ export const buildGqlRequestFromPost = async (
   let body: unknown;
   try {
     body = await httpRequest.json();
-  } catch (e) {
+  } catch (_) {
     return makeFailure(buildSimpleGqlRequestErrorResponse());
   }
 
