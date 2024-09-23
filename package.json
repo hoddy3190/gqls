@@ -29,6 +29,8 @@
     "gh-page": "tsx ./scripts/gh-page-build.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "test": "tsx --test",
+    "test:traceability": "tsx --test ./tests/spec-traceability.test.ts"
   },
   "config": {},
   "dependencies": {
