@@ -36,5 +36,5 @@ export const GQL_RESPONSE_MEDIA_TYPE: MediaType = {
   parameters: { charset: DEFAULT_ENCODING },
 };
 export const GQL_RESPONSE_CONTENT_TYPE = serializeMediaType(
-  GQL_RESPONSE_MEDIA_TYPE
+  GQL_RESPONSE_MEDIA_TYPE,
 );

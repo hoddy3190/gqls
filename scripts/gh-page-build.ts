@@ -14,7 +14,7 @@ const GITHUB_URL = JSON.parse(readFileSync("./package.json", "utf-8")).homepage;
 async function appendReferenceToSpecDocument(
   filePath: string,
   impledSpecMap: SpecMap,
-  ignoredSpecMap: SpecMap
+  ignoredSpecMap: SpecMap,
 ): Promise<string[]> {
   const file = await fs.open(filePath);
 
@@ -37,16 +37,16 @@ async function appendReferenceToSpecDocument(
       const filePathAndLineNumList = impledSpecMap[specId].map<string>(
         ([filePath, lineNum]) => {
           return `[${filePath}:${lineNum}](${GITHUB_URL}/blob/main/${filePath}#L${lineNum})`;
-        }
+        },
       );
 
       writeLines.push(
-        line + " | implemented at " + filePathAndLineNumList.join(", ")
+        line + " | implemented at " + filePathAndLineNumList.join(", "),
       );
     } else if (ignoredSpecMap[specId] !== undefined) {
       const [filePath, lineNum] = ignoredSpecMap[specId][0]!;
       writeLines.push(
-        `${line} | ignored at [${filePath}:${lineNum}](${GITHUB_URL}/blob/main/${filePath}#L${lineNum})`
+        `${line} | ignored at [${filePath}:${lineNum}](${GITHUB_URL}/blob/main/${filePath}#L${lineNum})`,
       );
     } else {
       throw new Error(`specId: ${specId} is not implemented yet`);
@@ -62,7 +62,7 @@ async function main(): Promise<void> {
   const lines = await appendReferenceToSpecDocument(
     SPEC_FILE_PATH,
     impledSpecIdSet,
-    ignoredSpecIdSet
+    ignoredSpecIdSet,
   );
   fs.writeFile("spec/tmp.md", lines.join("\n"));
   exec(`npx spec-md spec/tmp.md > ${GH_PAGE_INDEX_PATH}`, () => {

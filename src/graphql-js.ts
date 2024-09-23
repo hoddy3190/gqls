@@ -128,7 +128,7 @@ const convertErrors = (errors: ErrorsType): GqlError[] => {
 };
 
 const convertExtensions = (
-  extensions: ExtensionsType
+  extensions: ExtensionsType,
 ): GqlExtensions["extensions"] => {
   return extensions ?? {};
 };

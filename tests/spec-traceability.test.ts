@@ -14,7 +14,7 @@ suite("Spec Ids Traceability", async () => {
   describe("All spec ids in the specification file", () => {
     it("should appear in spec-ignore.json or implementation files", async () => {
       const danglingSpecSet = specIdSet.difference(
-        impledSpecIdSet.union(ignoredSpecIdSet)
+        impledSpecIdSet.union(ignoredSpecIdSet),
       );
       const message = `${[...danglingSpecSet].join(", ")} is/are not implemented nor ignored`;
       assert.strictEqual(danglingSpecSet.size, 0, message);

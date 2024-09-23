@@ -21,11 +21,13 @@ import {
 import { buildSimpleGqlRequestErrorResponse } from "./util.js";
 
 const isStringRecord = (o: unknown): o is Record<string, unknown> => {
-  return !!o && typeof o === "object" && !Buffer.isBuffer(o) && !Array.isArray(o);
+  return (
+    !!o && typeof o === "object" && !Buffer.isBuffer(o) && !Array.isArray(o)
+  );
 };
 
 export const buildGqlRequestFromBody = (
-  body: unknown
+  body: unknown,
 ): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   if (!isStringRecord(body))
     return makeFailure(buildSimpleGqlRequestErrorResponse());
@@ -39,7 +41,8 @@ export const buildGqlRequestFromBody = (
   let keyCount = 0;
 
   // @spec: S25, S32, S62
-  if (!("query" in body)) return makeFailure(buildSimpleGqlRequestErrorResponse());
+  if (!("query" in body))
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
   keyCount++;
   // @spec: S25, S32, S34, S62
   if (typeof body["query"] !== "string")
@@ -86,7 +89,8 @@ export const buildGqlRequestFromBody = (
 
   // @spec: S66
   // Other keys are not allowed.
-  if (keyCount !== len) return makeFailure(buildSimpleGqlRequestErrorResponse());
+  if (keyCount !== len)
+    return makeFailure(buildSimpleGqlRequestErrorResponse());
 
   return makeSuccess({
     query: body["query"],
@@ -97,7 +101,7 @@ export const buildGqlRequestFromBody = (
 };
 
 export const validatePostRequestHeaders = (
-  headers: Request["headers"]
+  headers: Request["headers"],
 ): GqlRequestErrorResponseWithHttpStatus | null => {
   // @spec: S35, S36, S79
   // While S79 states that a request without an Accept header SHOULD be treated
@@ -156,7 +160,7 @@ export const validatePostRequestHeaders = (
 };
 
 export const buildGqlRequestFromPost = async (
-  httpRequest: Request
+  httpRequest: Request,
 ): Promise<Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus>> => {
   assert(httpRequest.method === "POST");
 

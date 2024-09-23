@@ -11,7 +11,7 @@ import {
 import { buildSimpleGqlRequestErrorResponse } from "./util.js";
 
 export const validateGetRequestHeaders = (
-  headers: Request["headers"]
+  headers: Request["headers"],
 ): GqlRequestErrorResponseWithHttpStatus | null => {
   // @spec: S35, S36, S79
   // While S79 states that a request without an Accept header SHOULD be treated
@@ -48,7 +48,7 @@ export const validateGetRequestHeaders = (
 };
 
 export const buildGqlRequestFromUrl = (
-  url: string
+  url: string,
 ): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   // @spec: S42
   // URL class is implemented by WHATWG URL Standard.
@@ -121,7 +121,7 @@ export const buildGqlRequestFromUrl = (
 };
 
 export const buildGqlRequestFromGet = (
-  httpRequest: Request
+  httpRequest: Request,
 ): Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus> => {
   assert(httpRequest.method === "GET");
 

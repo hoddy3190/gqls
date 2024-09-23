@@ -10,7 +10,7 @@ test("mediaType aa", (t: TestContext) => {
 test("mediaType break line", (t: TestContext) => {
   const mediaType = parseMediaType(
     `applicat
-ion/json`
+ion/json`,
   );
   t.assert.strictEqual(mediaType, undefined);
 });

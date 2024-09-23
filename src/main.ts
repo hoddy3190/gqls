@@ -13,7 +13,7 @@ import {
 import { buildSimpleGqlRequestErrorResponse } from "./util.js";
 
 export const buildGqlRequest = async (
-  httpRequest: Request
+  httpRequest: Request,
 ): Promise<Result<GqlRequest, GqlRequestErrorResponseWithHttpStatus>> => {
   if (httpRequest.method === "POST") {
     return await buildGqlRequestFromPost(httpRequest);
@@ -51,7 +51,7 @@ export const handle = async <T>(
   httpRequest: Request,
   // @spec: S8
   // gqlImpl is typically created using a GraphQL schema and resolvers.
-  gqlImpl: GqlImpl<T>
+  gqlImpl: GqlImpl<T>,
 ): Promise<Response> => {
   const gqlRequest = await buildGqlRequest(httpRequest);
   if (!gqlRequest.success) {

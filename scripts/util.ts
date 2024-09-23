@@ -11,7 +11,7 @@ export async function extractSpecIds(
   filePath: string,
   specMap: SpecMap,
   lineRegex: RegExp,
-  specIdRegex: RegExp = /S\d+/g
+  specIdRegex: RegExp = /S\d+/g,
 ): Promise<SpecMap> {
   const file = await fs.open(filePath);
   let lineNum = 0;
@@ -47,7 +47,7 @@ export async function makeImpledSpecMap(): Promise<SpecMap> {
       entry,
       impledSpecMap,
       /^.*\/\/\s*@spec:/,
-      /(S\d+)/g
+      /(S\d+)/g,
     );
   }
   return impledSpecMap;

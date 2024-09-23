@@ -53,14 +53,14 @@ export type GqlResponse<T> =
   | GqlRequestError;
 
 export const isGqlSuccessOrPartialSuccess = <T>(
-  result: GqlResponse<T>
+  result: GqlResponse<T>,
 ): result is GqlSuccess<T> | GqlPartialSuccess<T> => {
   if ("data" in result) return true;
   return false;
 };
 
 export const isGqlRequestError = <T>(
-  result: GqlPartialSuccess<T> | GqlRequestError
+  result: GqlPartialSuccess<T> | GqlRequestError,
 ): result is GqlRequestError => {
   if (!("data" in result)) return true;
   return false;

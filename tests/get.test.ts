@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { suite, test } from "node:test";
-import { buildGqlRequestFromUrl, validateGetRequestHeaders } from "../src/get.js";
+import {
+  buildGqlRequestFromUrl,
+  validateGetRequestHeaders,
+} from "../src/get.js";
 
 const TEST_EP = "https://example.com:3000/graphql";
 const QUERY = `query=query HeroNameAndFriends($episode: Episode) {
@@ -173,7 +176,9 @@ suite("buildGqlRequestFromUrl", () => {
 
     test(`"${searchParam}" should be ${expMsg}`, () => {
       const result = buildGqlRequestFromUrl(encodedTestCaseUrl);
-      const act = result.success ? "success" : result.error.httpStatus.statusCode;
+      const act = result.success
+        ? "success"
+        : result.error.httpStatus.statusCode;
       assert.strictEqual(act, exp);
     });
   }

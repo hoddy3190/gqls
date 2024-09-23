@@ -223,7 +223,9 @@ suite("buildGqlRequestFromBody", () => {
 
     test(`"${JSON.stringify(body)}" should be ${expMsg}`, () => {
       const result = buildGqlRequestFromBody(body);
-      const act = result.success ? "success" : result.error.httpStatus.statusCode;
+      const act = result.success
+        ? "success"
+        : result.error.httpStatus.statusCode;
       assert.strictEqual(act, exp);
     });
   }

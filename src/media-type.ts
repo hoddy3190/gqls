@@ -7,7 +7,7 @@ const REVERSE_SOLIDUS = String.fromCharCode(0x5c);
 
 const charSet = (fromCode: number, toCode: number): Set<string> => {
   return Array.from({ length: toCode - fromCode + 1 }, (_, i) =>
-    String.fromCharCode(i + fromCode)
+    String.fromCharCode(i + fromCode),
   ).reduce((acc, char) => {
     acc.add(char);
     return acc;
@@ -108,7 +108,7 @@ const removeSurroundingWhitespace = (str: string): string => {
  */
 const getStringInnerQuotations = (
   input: string,
-  position: number
+  position: number,
 ): [string, number] | undefined => {
   assert(input[position] === DQUOTE);
 
@@ -468,7 +468,11 @@ export const parseMediaRange = (str: string): MediaType[] | undefined => {
         }
       }
 
-      if (position < len && str[position] !== ";" && !isOWSChar(str[position]!)) {
+      if (
+        position < len &&
+        str[position] !== ";" &&
+        !isOWSChar(str[position]!)
+      ) {
         return undefined;
       }
 
@@ -489,7 +493,7 @@ export const parseMediaRange = (str: string): MediaType[] | undefined => {
  */
 export const includeMediaType = (
   mediaRange: MediaType[],
-  mediaType: MediaType
+  mediaType: MediaType,
 ): boolean => {
   return (
     mediaRange.find((m) => {
@@ -514,6 +518,6 @@ export const serializeMediaType = (mediaType: MediaType): string => {
       acc += ";" + key + "=" + value;
       return acc;
     },
-    mediaType.mediaType
+    mediaType.mediaType,
   );
 };
