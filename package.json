@@ -26,7 +26,7 @@
     "url": "git+https://github.com/hoddy3190/graphql-http-handler.git"
   },
   "scripts": {
-    "test": "npx tsc && node out/main.test.js"
+    "gh-page": "tsx ./scripts/gh-page-build.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
   },
@@ -42,7 +42,8 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "3.3.3",
     "spec-md": "^3.1.0",
-    "typescript": "^5.5.4"
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
     "typescript-eslint": "^8.6.0"
   },
   "engines": {
